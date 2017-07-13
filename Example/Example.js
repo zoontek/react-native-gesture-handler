@@ -28,71 +28,158 @@ import {
   WebView,
 } from 'react-native-gesture-handler';
 
-const UNDERLAY_REF = 'UNDERLAY_REF';
-const CHILD_REF = 'CHILD_REF';
+class Gravity {
+  constructor(anchorPoint = 0, acceleration = 0.9) {
+    this._anchorPoint = anchorPoint;
+    this._acceleration = acceleration;
+  }
 
-class TouchableHighlight extends Component {
-  static propTypes = View.propTypes;
-  static defaultProps = {
-    activeOpacity: 0.85,
-    underlayColor: 'black',
-  }
-  constructor(props) {
-    super(props);
-    this.state = { gestureHandlerState: State.UNDETERMINED }
-    this._pressedStyle = {
-      opacity: this.props.activeOpacity,
-    }
-  }
-  _onStateChange = (event) => {
-    const nextGestureHandlerState = event.nativeEvent.state;
-    if (this.state.gestureHandlerState !== nextGestureHandlerState) {
-      this.setState({ gestureHandlerState: nextGestureHandlerState }, () => {
-        const pressed = nextGestureHandlerState === State.BEGAN;
-        this.refs[CHILD_REF].setNativeProps(
-          { style: pressed ? { opacity: this.props.activeOpacity } : INACTIVE_CHILD_STYLE }
-        );
-      });
-      if (event.nativeEvent.state === State.ACTIVE && this.props.onClick) {
-        this.props.onClick();
-      }
-    }
-  }
-  render() {
-    const pressed = this.state.gestureHandlerState === State.BEGAN;
-    const style = pressed ? { backgroundColor: this.props.underlayColor } : INACTIVE_UNDERLAY_STYLE;
-    return (
-      <TapGestureHandler onHandlerStateChange={this._onStateChange}>
-        <View style={[this.props.style, style]}>
-          {React.cloneElement(React.Children.only(this.props.children), { ref: CHILD_REF })}
-        </View>
-      </TapGestureHandler>
-    );
+  force(x, v) {
+    const dx = (x - this._anchorPoint);
+    return dx < 0 ? this._acceleration : -this._acceleration;
   }
 }
 
-var INACTIVE_CHILD_STYLE = StyleSheet.create({x: {opacity: 1.0}}).x;
-const INACTIVE_UNDERLAY_STYLE = StyleSheet.create({x: {backgroundColor: 'transparent'}}).x;
+class Damping {
+  constructor(coeff = 0.1) {
+    this._coeff = coeff;
+  }
+
+  force(x, v) {
+    return -this._coeff * v;
+  }
+}
+
+class Drag {
+  constructor(coeff = 0.1) {
+    this._coeff = coeff;
+  }
+
+  force(x, v) {
+    return -this._coeff * v * Math.abs(v);
+  }
+}
+
+class Spring {
+  constructor(anchorPoint = 0, tension = 0.8) {
+    this._anchorPoint = anchorPoint;
+    this._tension = tension;
+  }
+
+  force(x, v) {
+    return -this._tension * (x - this._anchorPoint);
+  }
+}
+
+class PhysicsAnimation extends Animated.Animation {
+  _input;
+  _forces;
+  _lastTime;
+  _onUpdate;
+  _x = 0;
+  _v = 0;
+
+  constructor(config) {
+    super();
+    this._forces = config.forces;
+  }
+
+  start(fromValue, onUpdate, onEnd, previousAnimation, animatedValue) {
+    this._lastTime = Date.now();
+    this._onUpdate = onUpdate;
+    this.__onEnd = onEnd;
+    this._input = animatedValue;
+    this._x = animatedValue.__getValue();
+    this._v = animatedValue.__getVelocity();
+    console.log("START", this._x, this._v);
+    this._animationFrame = requestAnimationFrame(this.onUpdate.bind(this));
+  }
+
+  _acceleration(x, v, dt) {
+    return this._forces.reduce((acc, force) => acc + force.force(x, v), 0.0);
+  }
+
+  _integrate(dt) {
+    // We are using a fixed time step and a maximum number of iterations.
+    // The following post provides a lot of thoughts into how to build this
+    // loop: http://gafferongames.com/game-physics/fix-your-timestep/
+    const MAX_STEPS = 30;
+    const STEPS_PER_SEC = 500;
+    const deltaSteps = Math.floor(dt * STEPS_PER_SEC);
+
+    const numSteps = Math.min(MAX_STEPS, Math.max(deltaSteps, 1));
+
+    for (var i = 0; i < numSteps; ++i) {
+      const step = 1 / STEPS_PER_SEC;
+
+      // This is using RK4. A good blog post to understand how it works:
+      // http://gafferongames.com/game-physics/integration-basics/
+      const aVelocity = this._v;
+      const aAcceleration = this._acceleration(this._x, aVelocity);
+
+      const bVelocity = this._v + aAcceleration * step / 2.0;
+      const bAcceleration = this._acceleration(this._x + aVelocity * step / 2.0, bVelocity);
+
+      const cVelocity = this._v + bAcceleration * step / 2.0;
+      const cAcceleration = this._acceleration(this._x + bVelocity * step / 2.0, cVelocity);
+
+      const dVelocity = this._v + cAcceleration * step;
+      const dAcceleration = this._acceleration(this._x + cVelocity * step, dVelocity);
+
+      const dxdt = (aVelocity + dVelocity + 2.0 * (bVelocity + cVelocity)) / 6.0;
+      const dvdt = (aAcceleration + dAcceleration + 2.0 * (bAcceleration + cAcceleration)) / 6.0;
+
+      this._x += dxdt * step;
+      this._v += dvdt * step;
+    }
+  }
+
+  onUpdate() {
+    const now = Date.now();
+    const dt = (now - this._lastTime) / 1000.0;
+    this._integrate(dt);
+    this._onUpdate(this._x);
+    this._lastTime = now;
+
+    if (Math.abs(this._v) < 0.001) {
+      this.__debouncedOnEnd({finished: true});
+    } else {
+      this._animationFrame = requestAnimationFrame(this.onUpdate.bind(this));
+    }
+  }
+
+  stop() {
+    super.stop();
+    global.cancelAnimationFrame(this._animationFrame);
+  }
+}
 
 class DraggableBox extends Component {
   constructor(props) {
     super(props);
-    this._translateX = new Animated.Value(0);
-    this._translateY = new Animated.Value(0);
-    this._lastOffset = { x: 0, y: 0 }
+    this._dragX = new Animated.Value(0);
+    this._dragY = new Animated.Value(0);
+
+    this._animationConfig = {
+      // forces: [new Gravity(100, 500), new Damping(6)],
+      forces: [new Spring(0, 80), new Damping(15), new Spring(100, 100)],
+    }
+
     this._onGestureEvent = Animated.event(
-       [{ nativeEvent: { translationX: this._translateX, translationY: this._translateY }}],
-       { useNativeDriver: true }
+       [{ nativeEvent: { translationX: this._dragX, translationY: this._dragY }}],
     )
   }
   _onHandlerStateChange = (event) => {
-    if (event.nativeEvent.oldState === State.ACTIVE) {
-      this._lastOffset.x += event.nativeEvent.translationX;
-      this._lastOffset.y += event.nativeEvent.translationY;
-      this._translateX.setOffset(this._lastOffset.x);
-      this._translateX.setValue(0);
-      this._translateY.setOffset(this._lastOffset.y);
-      this._translateY.setValue(0);
+    if (event.nativeEvent.state === State.ACTIVE) {
+      this._dragX.stopAnimation();
+      this._dragX.extractOffset();
+    } else if (event.nativeEvent.oldState === State.ACTIVE) {
+      console.log("FLAT");
+      this._dragX.flattenOffset();
+      this._dragX.animate(new PhysicsAnimation(this._animationConfig), () => {
+        this._dragX.extractOffset();
+        this._dragY.extractOffset();
+      });
     }
   }
   render() {
@@ -101,157 +188,13 @@ class DraggableBox extends Component {
           {...this.props}
           onGestureEvent={this._onGestureEvent}
           onHandlerStateChange={this._onHandlerStateChange}
-          minDist={100}
           id="dragbox">
         <Animated.View style={[styles.box, { transform: [
-          {translateX: this._translateX},
-          {translateY: this._translateY}
+          {translateX: this._dragX},
+          /*{{translateY: this._translateY}}*/
         ]}]}/>
       </PanGestureHandler>
     );
-  }
-}
-
-class PressBox extends Component {
-  _onHandlerStateChange = (event) => {
-    if (event.nativeEvent.state === State.ACTIVE) {
-      Alert.alert("I'm being pressed for so long");
-    }
-  }
-  _onSingleTap = (event) => {
-    if (event.nativeEvent.state === State.ACTIVE) {
-      Alert.alert("I'm touched");
-    }
-  }
-  _onDoubleTap = (event) => {
-    if (event.nativeEvent.state === State.ACTIVE) {
-      Alert.alert("D0able tap, good job!");
-    }
-  }
-  render() {
-    return (
-      <LongPressGestureHandler onHandlerStateChange={this._onHandlerStateChange} minDurationMs={1500}>
-        <TapGestureHandler onHandlerStateChange={this._onSingleTap} waitFor="double_tap">
-          <TapGestureHandler
-            id="double_tap"
-            onHandlerStateChange={this._onDoubleTap}
-            numberOfTaps={2}
-            shouldBeRequiredByOthersToFail={true}>
-            <View style={styles.box}/>
-          </TapGestureHandler>
-        </TapGestureHandler>
-      </LongPressGestureHandler>
-    );
-  }
-}
-
-class ControlledSwitch extends React.Component {
-  static propTypes = Switch.propTypes;
-  constructor(props) {
-    super(props);
-    this.state = { value: this.props.value || false }
-  }
-  _onValueChange = (value) => {
-    this.setState({ value });
-    this.props.onValueChange && this.props.onValueChange(value);
-  }
-  render() {
-    return (
-      <NativeViewGestureHandler hitSlop={20}>
-        <Switch {...this.props} value={this.state.value} onValueChange={this._onValueChange} />
-      </NativeViewGestureHandler>
-    );
-  }
-}
-
-class PinchableBox extends React.Component {
-  constructor(props) {
-    super(props);
-
-    /* Pinching */
-    this._baseScale = new Animated.Value(1);
-    this._pinchScale = new Animated.Value(1);
-    this._scale = Animated.multiply(this._baseScale, this._pinchScale);
-    this._lastScale = 1;
-    this._onPinchGestureEvent = Animated.event(
-       [{ nativeEvent: { scale: this._pinchScale }}],
-      //  { useNativeDriver: true }
-    );
-
-    /* Rotation */
-    this._rotate = new Animated.Value(0);
-    this._rotateStr = this._rotate.interpolate({ inputRange: [-100, 100], outputRange: ['-100rad', '100rad'] });
-    this._lastRotate = 0;
-    this._onRotateGestureEvent = Animated.event(
-       [{ nativeEvent: { rotation: this._rotate }}],
-      //  { useNativeDriver: true }
-    );
-
-    /* Tilt */
-    this._tilt = new Animated.Value(0);
-    this._tiltStr = this._tilt.interpolate({ inputRange: [-501, -500, 0, 1], outputRange: ['1rad', '1rad', '0rad', '0rad']});
-    this._lastTilt = 0;
-    this._onTiltGestureEvent = Animated.event(
-      [{ nativeEvent: { translationY: this._tilt }}],
-      //  { useNativeDriver: true }
-    );
-  }
-  _onRotateHandlerStateChange = (event) => {
-    if (event.nativeEvent.oldState === State.ACTIVE) {
-      this._lastRotate += event.nativeEvent.rotation;
-      this._rotate.setOffset(this._lastRotate);
-      this._rotate.setValue(0);
-    }
-  }
-  _onPinchHandlerStateChange = (event) => {
-    if (event.nativeEvent.oldState === State.ACTIVE) {
-      this._lastScale *= event.nativeEvent.scale;
-      this._baseScale.setValue(this._lastScale);
-      this._pinchScale.setValue(1);
-    }
-  }
-  _onTiltGestureStateChange = (event) => {
-    if (event.nativeEvent.oldState === State.ACTIVE) {
-      this._lastTilt += event.nativeEvent.translationY;
-      this._tilt.setOffset(this._lastTilt);
-      this._tilt.setValue(0);
-    }
-  }
-  render() {
-    return (
-      <Animated.View style={styles.pinchableBoxContainer} collapsable={false}>
-        <PanGestureHandler
-          id="image_tilt"
-          onGestureEvent={this._onTiltGestureEvent}
-          onHandlerStateChange={this._onTiltGestureStateChange}
-          minDist={10}
-          minPointers={2}
-          maxPointers={2}>
-          <RotationGestureHandler
-            id="image_rotation"
-            simultaneousHandlers="image_pinch"
-            shouldCancelOthersWhenActivated={false}
-            onGestureEvent={this._onRotateGestureEvent}
-            onHandlerStateChange={this._onRotateHandlerStateChange}>
-            <PinchGestureHandler
-              id="image_pinch"
-              simultaneousHandlers="image_rotation"
-              shouldCancelOthersWhenActivated={false}
-              onGestureEvent={this._onPinchGestureEvent}
-              onHandlerStateChange={this._onPinchHandlerStateChange}>
-              <Animated.Image
-                style={[styles.pinchableImage, { transform: [
-                  { perspective: 200 },
-                  { scale: this._scale },
-                  { rotate: this._rotateStr },
-                  { rotateX: this._tiltStr },
-                ] }]}
-                source={{uri: 'https://avatars1.githubusercontent.com/u/6952717'}}/>
-            </PinchGestureHandler>
-          </RotationGestureHandler>
-        </PanGestureHandler>
-      </Animated.View>
-    )
   }
 }
 
@@ -259,62 +202,10 @@ export default class Example extends Component {
   _onClick = () => {
     Alert.alert("I'm so touched");
   }
-  render2() {
-    const navigationView = (
-      <View style={{flex: 1, backgroundColor: '#fff'}}>
-        <Text style={{margin: 10, fontSize: 15, textAlign: 'left'}}>I'm in the Drawer!</Text>
-      </View>
-    );
-    return (
-      <ViewPagerAndroid style={styles.container} waitFor={["drawer_blocker", "drawer2_blocker"]}>
-        <View>
-          <DrawerLayoutAndroid
-            simultaneousHandlers="drawer_blocker"
-            drawerWidth={200}
-            drawerPosition={DrawerLayoutAndroid.positions.Left}
-            renderNavigationView={() => navigationView}>
-            <View style={{flex: 1, backgroundColor: 'gray'}}/>
-          </DrawerLayoutAndroid>
-          <PanGestureHandler id="drawer_blocker" hitSlop={{right: 100}}>
-            <View style={{position: 'absolute', width: 0, top: 0, bottom: 0}} />
-          </PanGestureHandler>
-        </View>
-        <View style={{backgroundColor: 'yellow'}}/>
-        <View style={{backgroundColor: 'blue'}}/>
-        <View>
-          <DrawerLayoutAndroid
-            simultaneousHandlers="drawer2_blocker"
-            drawerWidth={200}
-            drawerPosition={DrawerLayoutAndroid.positions.Right}
-            renderNavigationView={() => navigationView}>
-            <View style={{flex: 1, backgroundColor: 'plum'}}/>
-          </DrawerLayoutAndroid>
-          <PanGestureHandler id="drawer2_blocker" hitSlop={{left: 100}}>
-            <View style={{position: 'absolute', width: 0, top: 0, bottom: 0, right: 0}} />
-          </PanGestureHandler>
-        </View>
-      </ViewPagerAndroid>
-    );
-  }
   render() {
     return (
       <View style={styles.container}>
-        <ScrollView waitFor={["dragbox", "image_pinch", "image_rotation", "image_tilt"]} style={styles.scrollView}>
-          <TouchableHighlight style={styles.button} onClick={this._onClick}>
-            <View style={styles.buttonInner}>
-              <Text>Hello</Text>
-            </View>
-          </TouchableHighlight>
-          <Slider style={styles.slider} />
-          <PinchableBox/>
-          <DraggableBox/>
-          <PressBox/>
-          <ControlledSwitch/>
-          <Text style={styles.text}>
-            {LOREM_IPSUM}
-            {LOREM_IPSUM}
-          </Text>
-        </ScrollView>
+        <DraggableBox/>
       </View>
     );
   }
@@ -328,13 +219,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F5FCFF',
   },
-  slider: {
-    margin: 10,
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
   box: {
     width: 150,
     height: 150,
@@ -343,52 +227,5 @@ const styles = StyleSheet.create({
     margin: 10,
     zIndex: 200,
   },
-  button: {
-    margin: 20,
-  },
-  buttonInner: {
-    flex: 1,
-    padding: 10,
-    alignItems: 'center',
-    backgroundColor: 'red',
-  },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
-  },
-  text: {
-    margin: 10,
-  },
-  toolbar: {
-    backgroundColor: '#e9eaed',
-    height: 56,
-  },
-  pinchableBoxContainer: {
-    width: 250,
-    height: 250,
-    overflow: 'hidden',
-    alignSelf: 'center',
-    backgroundColor: 'black',
-  },
-  pinchableImage: {
-    flex: 1,
-  },
 });
 
-const LOREM_IPSUM = `
-Curabitur accumsan sit amet massa quis cursus. Fusce sollicitudin nunc nisl, quis efficitur quam tristique eget. Ut non erat molestie, ullamcorper turpis nec, euismod neque. Praesent aliquam risus ultricies, cursus mi consectetur, bibendum lorem. Nunc eleifend consectetur metus quis pulvinar. In vitae lacus eu nibh tincidunt sagittis ut id lorem. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Quisque sagittis mauris rhoncus, maximus justo in, consequat dolor. Pellentesque ornare laoreet est vulputate vestibulum. Aliquam sit amet metus lorem.
-
-Morbi tempus elit lorem, ut pulvinar nunc sagittis pharetra. Nulla mi sem, elementum non bibendum eget, viverra in purus. Vestibulum efficitur ex id nisi luctus egestas. Quisque in urna vitae leo consectetur ultricies sit amet at nunc. Cras porttitor neque at nisi ornare, mollis ornare dolor pharetra. Donec iaculis lacus orci, et pharetra eros imperdiet nec. Morbi leo nunc, placerat eget varius nec, volutpat ac velit. Phasellus pulvinar vulputate tincidunt. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Fusce elementum dui at ipsum hendrerit, vitae consectetur erat pulvinar. Sed vehicula sapien felis, id tristique dolor tempor feugiat. Aenean sit amet erat libero.
-
-Nam posuere at mi ut porttitor. Vivamus dapibus vehicula mauris, commodo pretium nibh. Mauris turpis metus, vulputate iaculis nibh eu, maximus tincidunt nisl. Vivamus in mauris nunc. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse convallis ornare finibus. Quisque leo ex, vulputate quis molestie auctor, congue nec arcu.
-
-Praesent ac risus nec augue commodo semper eu eget quam. Donec aliquam sodales convallis. Etiam interdum eu nulla at tempor. Duis nec porttitor odio, consectetur tempor turpis. Sed consequat varius lorem vel fermentum. Maecenas dictum sapien vitae lobortis tempus. Aliquam iaculis vehicula velit, non tempus est varius nec. Nunc congue dolor nec sem gravida, nec tincidunt mi luctus. Nam ut porttitor diam.
-
-Fusce interdum nisi a risus aliquet, non dictum metus cursus. Praesent imperdiet sapien orci, quis sodales metus aliquet id. Aliquam convallis pharetra erat. Fusce gravida diam ut tellus elementum sodales. Fusce varius congue neque, quis laoreet sapien blandit vestibulum. Donec congue libero sapien, nec varius risus viverra ut. Quisque eu maximus magna. Phasellus tortor nisi, tincidunt vitae dignissim nec, interdum vel mi. Ut accumsan urna finibus posuere mattis.
-`
