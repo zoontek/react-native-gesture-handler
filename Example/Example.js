@@ -8,6 +8,7 @@ import {
   Text,
   View,
   Image,
+  findNodeHandle,
   // ScrollView,
 } from 'react-native';
 
@@ -153,7 +154,7 @@ class PhysicsAnimation extends Animated.Animation {
   }
 }
 
-class DraggableBox extends Component {
+class Snappable extends Component {
   constructor(props) {
     super(props);
     this._dragX = new Animated.Value(0);
@@ -184,22 +185,20 @@ class DraggableBox extends Component {
     }
   }
   render() {
+    const { children, ...rest } = this.props;
     return (
       <PanGestureHandler
           {...this.props}
           onGestureEvent={this._onGestureEvent}
           onHandlerStateChange={this._onHandlerStateChange}
-          id="dragbox">
-        <Animated.View style={[styles.box, { transform: [
-          {translateX: this._transX},
-          /*{{translateY: this._translateY}}*/
-        ]}]}/>
+      >
+        {React.cloneElement(children, { ...rest, translation: this._transX })}
       </PanGestureHandler>
     );
   }
 }
 
-class TwistableBox extends Component {
+class Twistable extends Component {
   constructor(props) {
     super(props);
     this._gesture = new Animated.Value(0);
@@ -228,17 +227,24 @@ class TwistableBox extends Component {
     }
   }
   render() {
+    const { children, ...rest } = this.props;
+    const child = React.Children.only(children);
     return (
       <RotationGestureHandler
           {...this.props}
           onGestureEvent={this._onGestureEvent}
           onHandlerStateChange={this._onHandlerStateChange}
-          id="dragbox">
-        <Animated.View style={[styles.box, { transform: [
-          {rotate: this._rot},
-        ]}]}/>
+      >
+        {React.cloneElement(child, { ...rest, rotation: this._rot })}
       </RotationGestureHandler>
     );
+  }
+}
+
+class Box extends Component {
+  render() {
+    const { rotation, translation, ...rest } = this.props;
+    return <Animated.View {...rest} style={[styles.box, { transform: [ { rotate: rotation }, { translateX: translation }]}]} />
   }
 }
 
@@ -249,7 +255,11 @@ export default class Example extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <TwistableBox/>
+        <Twistable>
+          <Snappable>
+            <Box/>
+          </Snappable>
+        </Twistable>
       </View>
     );
   }
