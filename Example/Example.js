@@ -31,10 +31,10 @@ import {
 
 const USE_NATIVE_DRIVER = true;
 
-setInterval(() => {
-  let iters = 1e8, sum = 0;
-  while (iters-- > 0) sum += iters;
-}, 300);
+// setInterval(() => {
+//   let iters = 1e8, sum = 0;
+//   while (iters-- > 0) sum += iters;
+// }, 300);
 
 class Snappable extends Component {
   constructor(props) {
@@ -118,11 +118,11 @@ export default class Example extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <Twistable>
-          <Snappable>
+        <Snappable>
+          <Twistable>
             <View style={styles.box} />
-          </Snappable>
-        </Twistable>
+          </Twistable>
+        </Snappable>
       </View>
     );
   }
@@ -141,9 +141,10 @@ const styles = StyleSheet.create({
   box: {
     width: BOX_SIZE,
     height: BOX_SIZE,
+    borderColor: '#F5FCFF',
     alignSelf: 'center',
     backgroundColor: 'plum',
-    margin: 10,
+    margin: BOX_SIZE / 2,
   },
 });
 
