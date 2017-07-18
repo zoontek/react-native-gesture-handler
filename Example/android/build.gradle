@@ -8,7 +8,9 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.0-alpha4'
+//        classpath 'com.android.tools.build:gradle:3.0.0-alpha4'
+        classpath 'com.android.tools.build:gradle:2.2.1'
+        classpath 'de.undercouch:gradle-download-task:3.1.2'
     }
 }
 
@@ -16,9 +18,9 @@ allprojects {
     repositories {
         mavenLocal()
         jcenter()
-        maven {
+//        maven {
             // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
-            url "$rootDir/../node_modules/react-native/android"
-        }
+//            url "$rootDir/../node_modules/react-native/android"
+//        }
     }
 }

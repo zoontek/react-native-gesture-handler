@@ -10,6 +10,7 @@ import {
   Image,
   findNodeHandle,
   // ScrollView,
+  Dimensions,
 } from 'react-native';
 
 import {
@@ -29,7 +30,7 @@ import {
   WebView,
 } from 'react-native-gesture-handler';
 
-const USE_NATIVE_DRIVER = true;
+const USE_NATIVE_DRIVER = false;
 
 // setInterval(() => {
 //   let iters = 1e8, sum = 0;
@@ -114,37 +115,157 @@ class Twistable extends Component {
   }
 }
 
+require('MessageQueue').spy(true);
+
+const START_X = 0;
+const START_Y = 0;
+
+class Tracking extends Component {
+  constructor(props) {
+    super(props);
+    this._dragX = new Animated.Value(START_X);
+    this._transX = new Animated.Value(START_X);
+    this._follow1x = new Animated.Value(START_X);
+    this._follow2x = new Animated.Value(START_X);
+    Animated.spring(this._transX, {
+      toValue: this._dragX,
+      tension: 0.5,
+      friction: 3,
+    }).start();
+    Animated.spring(this._follow1x, {
+      toValue: this._transX,
+      tension: 0.5,
+      friction: 3,
+    }).start();
+    Animated.spring(this._follow2x, {
+      toValue: this._follow1x,
+      tension: 0.5,
+      friction: 3,
+    }).start();
+
+    this._dragY = new Animated.Value(START_Y);
+    this._transY = new Animated.Value(START_Y);
+    this._follow1y = new Animated.Value(START_Y);
+    this._follow2y = new Animated.Value(START_Y);
+    Animated.spring(this._transY, {
+      toValue: this._dragY,
+      tension: 0.5,
+      friction: 3,
+    }).start();
+    Animated.spring(this._follow1y, {
+      toValue: this._transY,
+      tension: 0.5,
+      friction: 3,
+    }).start();
+    Animated.spring(this._follow2y, {
+      toValue: this._follow1y,
+      tension: 0.5,
+      friction: 3,
+    }).start();
+
+    this._onGestureEvent = Animated.event(
+       [{ nativeEvent: { translationX: this._dragX, translationY: this._dragY }}],
+       { useNativeDriver: USE_NATIVE_DRIVER },
+    )
+
+    this._lastOffset = { x: START_X, y: START_Y };
+  }
+  _onHandlerStateChange = (event) => {
+    if (event.nativeEvent.oldState === State.ACTIVE) {
+
+      const  { height, width } = Dimensions.get('window');
+
+      const posX = this._lastOffset.x + event.nativeEvent.translationX;
+      const posY = this._lastOffset.y + event.nativeEvent.translationY;
+
+      const distFromTop = posY;
+      const distFromBottom = height - posY - BOX_SIZE;
+      const distFromLeft = posX;
+      const distFromRight = width - posX - BOX_SIZE;
+
+      this._lastOffset = { x: posX, y: posY };
+
+      this._dragX.flattenOffset();
+      this._dragY.flattenOffset();
+
+      const minDist = Math.min(distFromTop, distFromBottom, distFromLeft, distFromRight);
+      if (distFromTop === minDist) {
+        this._dragY.setValue(- BOX_SIZE / 2);
+        this._lastOffset.y = - BOX_SIZE / 2;
+      } else if (distFromBottom === minDist) {
+        this._dragY.setValue(height - BOX_SIZE / 2);
+        this._lastOffset.y = height - BOX_SIZE / 2;
+      } else if (distFromLeft === minDist) {
+        this._dragX.setValue(- BOX_SIZE / 2);
+        this._lastOffset.x = - BOX_SIZE / 2;
+      } else if (distFromRight === minDist) {
+        this._dragX.setValue(width - BOX_SIZE / 2);
+        this._lastOffset.x = width - BOX_SIZE / 2;
+      }
+
+      this._dragX.extractOffset();
+      this._dragY.extractOffset();
+    }
+  }
+  render() {
+    return (
+      <View style={{position: 'absolute', left: 0, right: 0, top: 0, bottom: 0}}>
+        <Animated.Image
+          style={[styles.box, { marginLeft: 10, marginTop: 10 }, { transform: [{ translateX: this._follow2x }, {translateY: this._follow2y }]}]}
+          source={{ uri: 'https://swmansion.com/70fb4b9c93daf08add19a790d96ce2db.jpg' }}
+        />
+         <Animated.Image
+          style={[styles.box, { marginLeft: 5, marginTop: 5}, { transform: [{ translateX: this._follow1x }, {translateY: this._follow1y }]}]}
+          source={{ uri: 'https://swmansion.com/a1d401c2e6706af865aec0eb9301d6c1.jpg' }}
+        />
+
+        <PanGestureHandler
+          onGestureEvent={this._onGestureEvent}
+          onHandlerStateChange={this._onHandlerStateChange}
+        >
+          <Animated.Image
+            style={[styles.box, { transform: [{ translateX: this._transX }, {translateY: this._transY }]}]}
+            source={{ uri: 'https://swmansion.com/13f9de8560250cc35b7bd273849da7e7.jpg' }}
+          />
+        </PanGestureHandler>
+      </View>
+    )
+  }
+}
+
+
 export default class Example extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <Snappable>
-          <Twistable>
+         <Tracking />
+         {/* <Snappable>
             <View style={styles.box} />
-          </Twistable>
-        </Snappable>
+        </Snappable> */}
       </View>
     );
   }
 }
 
-const BOX_SIZE = 200;
+const BOX_SIZE = 80;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    // paddingTop: 20,
+    // justifyContent: 'center',
+    // alignItems: 'center',
     backgroundColor: '#F5FCFF',
   },
   box: {
+    position: 'absolute',
     width: BOX_SIZE,
     height: BOX_SIZE,
     borderColor: '#F5FCFF',
-    alignSelf: 'center',
+    // alignSelf: 'center',
     backgroundColor: 'plum',
-    margin: BOX_SIZE / 2,
+    borderRadius: BOX_SIZE / 2,
+    // margin: - BOX_SIZE / 2,
   },
 });
 
