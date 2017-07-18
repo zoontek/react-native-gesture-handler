@@ -185,14 +185,10 @@ const TapGestureHandler = createHandler('TapGestureHandler', {
   maxDurationMs: PropTypes.number,
   maxDelayMs: PropTypes.number,
   numberOfTaps: PropTypes.number,
-}, {
-  shouldCancelOthersWhenActivated: true,
-});
+}, {});
 const LongPressGestureHandler = createHandler('LongPressGestureHandler', {
   minDurationMs: PropTypes.number,
-}, {
-  shouldCancelOthersWhenActivated: true,
-});
+}, {});
 const PanGestureHandler = createHandler('PanGestureHandler', {
   minDeltaX: PropTypes.number,
   minDeltaY: PropTypes.number,
@@ -200,9 +196,7 @@ const PanGestureHandler = createHandler('PanGestureHandler', {
   maxVelocity: PropTypes.number,
   minPointers: PropTypes.number,
   maxPointers: PropTypes.number,
-}, {
-  shouldCancelOthersWhenActivated: true,
-});
+}, {});
 const PinchGestureHandler = createHandler('PinchGestureHandler', {}, {});
 const RotationGestureHandler = createHandler('RotationGestureHandler', {}, {});
 
@@ -224,8 +218,12 @@ function createNativeWrapper(Component, config = {}) {
       }
     }
 
+    _refHandler = (node) => {
+      this._viewNode = node;
+    }
+
     componentWillUnmount() {
-      const viewTag = findNodeHandle(this.refs[CHILD_REF]);
+      const viewTag = findNodeHandle(this._viewNode);
       RNGestureHandlerModule.dropGestureHandlersForView(viewTag);
       if (this.props.id) {
         delete handlerIDToTag[this.props.id];
@@ -233,7 +231,7 @@ function createNativeWrapper(Component, config = {}) {
     }
 
     componentDidMount() {
-      const viewTag = findNodeHandle(this.refs[CHILD_REF]);
+      const viewTag = findNodeHandle(this._viewNode);
       RNGestureHandlerModule.createGestureHandler(
         viewTag,
         'NativeViewGestureHandler',
@@ -243,7 +241,7 @@ function createNativeWrapper(Component, config = {}) {
     }
 
     render() {
-      return <Component {...this.props} ref={CHILD_REF} />;
+      return <Component {...this.props} ref={this._refHandler} />;
     }
   }
   return ComponentWrapper;
