@@ -115,32 +115,34 @@ class Twistable extends Component {
   }
 }
 
-require('MessageQueue').spy(true);
-
 const START_X = 0;
 const START_Y = 0;
 
 class Tracking extends Component {
   constructor(props) {
     super(props);
+
+    const tension = 0.8;
+    const friction = 3;
+
     this._dragX = new Animated.Value(START_X);
     this._transX = new Animated.Value(START_X);
     this._follow1x = new Animated.Value(START_X);
     this._follow2x = new Animated.Value(START_X);
     Animated.spring(this._transX, {
       toValue: this._dragX,
-      tension: 0.5,
-      friction: 3,
+      tension,
+      friction,
     }).start();
     Animated.spring(this._follow1x, {
       toValue: this._transX,
-      tension: 0.5,
-      friction: 3,
+      tension,
+      friction,
     }).start();
     Animated.spring(this._follow2x, {
       toValue: this._follow1x,
-      tension: 0.5,
-      friction: 3,
+      tension,
+      friction,
     }).start();
 
     this._dragY = new Animated.Value(START_Y);
@@ -149,18 +151,18 @@ class Tracking extends Component {
     this._follow2y = new Animated.Value(START_Y);
     Animated.spring(this._transY, {
       toValue: this._dragY,
-      tension: 0.5,
-      friction: 3,
+      tension,
+      friction,
     }).start();
     Animated.spring(this._follow1y, {
       toValue: this._transY,
-      tension: 0.5,
-      friction: 3,
+      tension,
+      friction,
     }).start();
     Animated.spring(this._follow2y, {
       toValue: this._follow1y,
-      tension: 0.5,
-      friction: 3,
+      tension,
+      friction,
     }).start();
 
     this._onGestureEvent = Animated.event(
@@ -190,8 +192,8 @@ class Tracking extends Component {
 
       const minDist = Math.min(distFromTop, distFromBottom, distFromLeft, distFromRight);
       if (distFromTop === minDist) {
-        this._dragY.setValue(- BOX_SIZE / 2);
-        this._lastOffset.y = - BOX_SIZE / 2;
+        this._dragY.setValue(- BOX_SIZE / 4);
+        this._lastOffset.y = - BOX_SIZE / 4;
       } else if (distFromBottom === minDist) {
         this._dragY.setValue(height - BOX_SIZE / 2);
         this._lastOffset.y = height - BOX_SIZE / 2;
