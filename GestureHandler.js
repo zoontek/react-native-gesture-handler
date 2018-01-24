@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import ReactNativeBridgeEventPlugin from 'react-native/Libraries/Renderer/shims/ReactNativeBridgeEventPlugin';
 import deepEqual from 'fbjs/lib/areEqual';
+import invariant from 'fbjs/lib/invariant';
 import PropTypes from 'prop-types';
 
 import gestureHandlerRootHOC from './gestureHandlerRootHOC';
@@ -235,22 +236,30 @@ function createHandler(handlerName, propTypes = null, config = {}) {
       let gestureEventHandler = this._onGestureHandlerEvent;
       const { onGestureEvent, onGestureHandlerEvent } = this.props;
       if (onGestureEvent && typeof onGestureEvent !== 'function') {
-        // If it's not a mathod it should be an native Animated.event
-        // object. We set it directly as the handler for the view
-        // In this case nested handlers are not going to be supported
-        if (onGestureHandlerEvent) {
-          throw new Error(
-            'Nesting touch handlers with native animated driver is not supported yet'
-          );
-        }
-        gestureEventHandler = this.props.onGestureEvent;
+        invariant(
+          !onGestureHandlerEvent || onGestureHandlerEvent.__isNative,
+          'Nesting native and non-native driver enabled events is not supported'
+        );
+        const parentMapping = onGestureHandlerEvent
+          ? onGestureHandlerEvent._argMapping
+          : [];
+        const thisMapping = onGestureEvent._argMapping.map(mapping => ({
+          nativeEvent: {
+            ...mapping.nativeEvent,
+            handlerTag: this._handlerTag,
+          },
+        }));
+        gestureEventHandler = Animated.event(
+          [...parentMapping, ...thisMapping],
+          { useNativeDriver: true }
+        );
       } else {
         if (
           onGestureHandlerEvent &&
           typeof onGestureHandlerEvent !== 'function'
         ) {
           throw new Error(
-            'Nesting touch handlers with native animated driver is not supported yet'
+            'Nesting native and non-native driver enabled events is not supported'
           );
         }
       }
@@ -258,22 +267,31 @@ function createHandler(handlerName, propTypes = null, config = {}) {
       let gestureStateEventHandler = this._onGestureHandlerStateChange;
       const { onHandlerStateChange, onGestureHandlerStateChange } = this.props;
       if (onHandlerStateChange && typeof onHandlerStateChange !== 'function') {
-        // If it's not a method it should be an native Animated.event
-        // object. We set it directly as the handler for the view
-        // In this case nested handlers are not going to be supported
-        if (onGestureHandlerStateChange) {
-          throw new Error(
-            'Nesting touch handlers with native animated driver is not supported yet'
-          );
-        }
-        gestureStateEventHandler = this.props.onHandlerStateChange;
+        invariant(
+          !onGestureHandlerStateChange ||
+            onGestureHandlerStateChange.__isNative,
+          'Nesting native and non-native driver enabled events is not supported'
+        );
+        const parentMapping = onGestureHandlerStateChange
+          ? onGestureHandlerStateChange._argMapping
+          : [];
+        const thisMapping = onHandlerStateChange._argMapping.map(mapping => ({
+          nativeEvent: {
+            ...mapping.nativeEvent,
+            handlerTag: this._handlerTag,
+          },
+        }));
+        gestureStateEventHandler = Animated.event(
+          [...parentMapping, ...thisMapping],
+          { useNativeDriver: true }
+        );
       } else {
         if (
           onGestureHandlerStateChange &&
           typeof onGestureHandlerStateChange !== 'function'
         ) {
           throw new Error(
-            'Nesting touch handlers with native animated driver is not supported yet'
+            'Nesting native and non-native driver enabled events is not supported'
           );
         }
       }
