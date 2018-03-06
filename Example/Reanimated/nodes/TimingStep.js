@@ -1,8 +1,5 @@
 import AnimatedWithInput from './AnimatedWithInput';
-
-function val(valueOrNumber) {
-  return valueOrNumber.__getValue ? valueOrNumber.__getValue() : valueOrNumber;
-}
+import { val } from '../utils';
 
 function timing(now, state, config, easing) {
   const time = state.time || now;
@@ -12,7 +9,6 @@ function timing(now, state, config, easing) {
 
   if (frameTime + dt >= config.duration) {
     state.position = config.toValue;
-    // console.log("UPDATE FINISHED -> 1");
     state.finished = 1;
   } else {
     const lastProgress = easing(frameTime / config.duration);
@@ -39,10 +35,10 @@ export default class TimingStep extends AnimatedWithInput {
   }
 
   update() {
-    this.__getValue();
+    val(this);
   }
 
   __onEvaluate() {
-    timing(this._clock.__getValue(), this._state, this._config, this._easing);
+    timing(val(this._clock), this._state, this._config, this._easing);
   }
 }

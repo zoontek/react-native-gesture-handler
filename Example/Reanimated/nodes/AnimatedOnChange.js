@@ -1,4 +1,5 @@
 import AnimatedWithInput from './AnimatedWithInput';
+import { val } from '../utils';
 
 export default class AnimatedOnChange extends AnimatedWithInput {
   _value;
@@ -9,18 +10,18 @@ export default class AnimatedOnChange extends AnimatedWithInput {
     super([value]);
     this._value = value;
     this._what = what;
-    this._lastValue = value.__getValue();
+    this._lastValue = val(value);
   }
 
   update() {
     // side effects
-    this.__getValue();
+    val(this);
   }
 
   __onEvaluate() {
-    const newValue = this._value.__getValue();
+    const newValue = val(this._value);
     if (newValue !== this._lastValue) {
-      this._what.__getValue();
+      val(this._what);
       this._lastValue = newValue;
     }
   }

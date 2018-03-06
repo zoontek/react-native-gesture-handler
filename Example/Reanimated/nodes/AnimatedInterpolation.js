@@ -289,7 +289,7 @@ export default class AnimatedInterpolation extends AnimatedWithInput {
   }
 
   __onEvaluate() {
-    const parentValue = this._parent.__getValue();
+    const parentValue = val(this._parent);
     invariant(
       typeof parentValue === 'number',
       'Cannot interpolate an input which is not a number.'

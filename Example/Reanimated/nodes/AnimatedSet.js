@@ -1,4 +1,5 @@
 import AnimatedWithInput from './AnimatedWithInput';
+import { val } from '../utils';
 
 export default class AnimatedSet extends AnimatedWithInput {
   _what;
@@ -11,9 +12,8 @@ export default class AnimatedSet extends AnimatedWithInput {
   }
 
   __onEvaluate() {
-    const newValue = this._value.__getValue();
+    const newValue = val(this._value);
     this._what._updateValue(newValue);
-    // console.log("SET", newValue);
     return newValue;
   }
 }

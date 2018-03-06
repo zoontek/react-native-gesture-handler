@@ -1,5 +1,5 @@
-import AnimatedNode from './AnimatedNode';
 import AnimatedWithInput from './AnimatedWithInput';
+import { val } from '../utils';
 
 export default class AnimatedOp extends AnimatedWithInput {
   _inputNodes;
@@ -12,10 +12,6 @@ export default class AnimatedOp extends AnimatedWithInput {
   }
 
   __onEvaluate() {
-    return this._processor(
-      this._inputNodes.map(
-        node => (node instanceof AnimatedNode ? node.__getValue() : node)
-      )
-    );
+    return this._processor(this._inputNodes.map(node => val(node)));
   }
 }

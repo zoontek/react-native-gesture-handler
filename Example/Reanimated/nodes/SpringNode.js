@@ -1,5 +1,5 @@
-import AnimatedNode from './AnimatedNode';
 import AnimatedWithInput from './AnimatedWithInput';
+import { proxyAnimatedObject, val } from '../utils';
 
 const MAX_STEPS_MS = 64;
 
@@ -81,28 +81,6 @@ function spring(now, state, config) {
   }
 }
 
-function proxyAnimatedObject(target) {
-  const handler = {
-    get(target, key) {
-      const value = target[key];
-      if (value instanceof AnimatedNode) {
-        return value.__getValue();
-      }
-      return value;
-    },
-    set(target, key, val) {
-      const value = target[key];
-      if (value instanceof AnimatedNode) {
-        return value._updateValue(val);
-      } else {
-        target[key] = val;
-      }
-      return true;
-    },
-  };
-  return new Proxy(target, handler);
-}
-
 export default class SpringNode extends AnimatedWithInput {
   _clock;
   _state;
@@ -116,10 +94,10 @@ export default class SpringNode extends AnimatedWithInput {
   }
 
   update() {
-    this.__getValue();
+    val(this);
   }
 
   __onEvaluate() {
-    spring(this._clock.__getValue(), this._state, this._config);
+    spring(val(this._clock), this._state, this._config);
   }
 }

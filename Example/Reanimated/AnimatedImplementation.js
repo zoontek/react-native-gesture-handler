@@ -7,71 +7,77 @@ import AnimatedOnChange from './nodes/AnimatedOnChange';
 import AnimatedNode from './nodes/AnimatedNode';
 import AnimatedProps from './nodes/AnimatedProps';
 import AnimatedTracking from './nodes/AnimatedTracking';
-import AnimatedBlock from './nodes/AnimatedBlock';
 import AnimatedValue from './nodes/AnimatedValue';
 import DecayAnimation from './animations/DecayAnimation';
 import SpringAnimation from './animations/SpringAnimation';
 import TimingAnimation from './animations/TimingAnimation';
 
+import { adapt } from './utils';
 import createAnimatedComponent from './createAnimatedComponent';
 
 const add = function(a, b) {
-  return new AnimatedOp([a, b], ([a, b]) => a + b);
+  return new AnimatedOp([adapt(a), adapt(b)], ([a, b]) => a + b);
 };
 
 const divide = function(a, b) {
-  return new AnimatedOp([a, b], ([a, b]) => a / b);
+  return new AnimatedOp([adapt(a), adapt(b)], ([a, b]) => a / b);
 };
 
 const multiply = function(a, b) {
-  return new AnimatedOp([a, b], ([a, b]) => a * b);
+  return new AnimatedOp([adapt(a), adapt(b)], ([a, b]) => a * b);
 };
 
 const set = function(what, value) {
-  return new AnimatedSet(what, value);
+  return new AnimatedSet(what, adapt(value));
 };
 
 const cond = function(cond, ifBlock, elseBlock) {
-  return new AnimatedCond(cond, ifBlock, elseBlock);
+  return new AnimatedCond(adapt(cond), adapt(ifBlock), adapt(elseBlock));
 };
 
 const eq = function(a, b) {
-  return new AnimatedOp([a, b], ([a, b]) => a === b);
+  return new AnimatedOp([adapt(a), adapt(b)], ([a, b]) => a === b);
 };
 
 const lessThan = function(a, b) {
-  return new AnimatedOp([a, b], ([a, b]) => a < b);
+  return new AnimatedOp([adapt(a), adapt(b)], ([a, b]) => a < b);
 };
 
 const defined = function(v) {
   return new AnimatedOp(
-    [v],
+    [adapt(v)],
     ([v]) => v !== null && v !== undefined && !isNaN(v)
   );
 };
 
 const or = function(a, b) {
-  return new AnimatedOp([a, b], ([a, b]) => a || b);
+  return new AnimatedOp([adapt(a), adapt(b)], ([a, b]) => a || b);
 };
 
 const and = function(a, b) {
-  return new AnimatedOp([a, b], ([a, b]) => a && b);
+  return new AnimatedOp([adapt(a), adapt(b)], ([a, b]) => a && b);
 };
 
 const block = function(items) {
-  return new AnimatedBlock(items);
+  return adapt(items);
 };
 
 const call = function(items, func) {
-  return new AnimatedOp(items, values => func(values) && 0);
+  return new AnimatedOp(
+    items.map(node => adapt(node)),
+    values => func(values) && 0
+  );
 };
 
 const modulo = function(a, modulus) {
-  return new AnimatedOp([a, modulus], ([a, b]) => (a % b + b) % b);
+  return new AnimatedOp(
+    [adapt(a), adapt(modulus)],
+    ([a, b]) => (a % b + b) % b
+  );
 };
 
 const onChange = function(value, action) {
-  return new AnimatedOnChange(value, action);
+  return new AnimatedOnChange(adapt(value), adapt(action));
 };
 
 const min = function(a, b) {

@@ -1,5 +1,5 @@
-import AnimatedNode from './AnimatedNode';
 import AnimatedWithInput from './AnimatedWithInput';
+import { val } from '../utils';
 
 export default class AnimatedBlock extends AnimatedWithInput {
   _array;
@@ -12,7 +12,7 @@ export default class AnimatedBlock extends AnimatedWithInput {
   __onEvaluate() {
     let result;
     this._array.forEach(node => {
-      result = node instanceof AnimatedNode ? node.__getValue() : node;
+      result = val(node);
     });
     return result;
   }

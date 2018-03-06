@@ -55,40 +55,30 @@ class Snappable extends Component {
     const stash = new Animated.Value(0);
     const prev = new Animated.Value(0);
 
-    this._transX = Animated.set(
-      transX,
-      Animated.block([
-        Animated.cond(
-          Animated.eq(this._state, State.ACTIVE),
-          Animated.block([
-            Animated.set(
-              stash,
-              Animated.add(
-                transX,
-                Animated.add(this._dragX, Animated.multiply(-1, prev))
-              )
-            ),
-            Animated.set(prev, this._dragX),
+    const { set, cond, eq, add, multiply } = Animated;
+
+    this._transX = set(transX, [
+      cond(
+        eq(this._state, State.ACTIVE),
+        [
+          set(stash, add(transX, add(this._dragX, multiply(-1, prev)))),
+          set(prev, this._dragX),
+        ],
+        [
+          cond(eq(prevState, State.ACTIVE), [
+            set(springFinished, ZERO),
+            set(springVelocity, ZERO),
+            set(springValue, transX),
+            set(springTime, ZERO),
+            set(prev, ZERO),
           ]),
-          Animated.block([
-            Animated.cond(
-              Animated.eq(prevState, State.ACTIVE),
-              Animated.block([
-                Animated.set(springFinished, ZERO),
-                Animated.set(springVelocity, ZERO),
-                Animated.set(springValue, transX),
-                Animated.set(springTime, ZERO),
-                Animated.set(prev, ZERO),
-              ])
-            ),
-            springStep,
-            Animated.set(stash, springValue),
-          ])
-        ),
-        Animated.set(prevState, this._state),
-        stash,
-      ])
-    );
+          springStep,
+          set(stash, springValue),
+        ]
+      ),
+      set(prevState, this._state),
+      stash,
+    ]);
   }
   // constructor(props) {
   //   super(props);
