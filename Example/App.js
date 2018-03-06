@@ -14,6 +14,7 @@ import PanResponder from './panResponder';
 import Bouncing from './bouncing';
 import HorizontalDrawer from './horizontalDrawer';
 import ChatHeads from './chatHeads';
+import Anims from './anims';
 import { ComboWithGHScroll, ComboWithRNScroll } from './combo';
 
 const SCREENS = {
@@ -36,6 +37,7 @@ const SCREENS = {
   },
   PanResponder: { screen: PanResponder },
   Bouncing: { screen: Bouncing, title: 'Twist & bounce back animation' },
+  Anims: { screen: Anims, title: 'Reanimated' },
   // ChatHeads: {
   //   screen: ChatHeads,
   //   title: 'Chat Heads (no native animated support yet)',
@@ -90,7 +92,7 @@ const ExampleApp = StackNavigator(
     ...SCREENS,
   },
   {
-    initialRouteName: 'Main',
+    initialRouteName: 'Anims',
   }
 );
 
