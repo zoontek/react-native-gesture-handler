@@ -1,7 +1,6 @@
-const AnimatedValue = require('./AnimatedValue');
-const AnimatedNode = require('./AnimatedNode');
+import AnimatedNode from './AnimatedNode';
 
-class AnimatedTracking extends AnimatedNode {
+export default class AnimatedTracking extends AnimatedNode {
   constructor(value, parent, animationClass, animationConfig, callback) {
     super();
     this._value = value;
@@ -35,5 +34,3 @@ class AnimatedTracking extends AnimatedNode {
     );
   }
 }
-
-module.exports = AnimatedTracking;

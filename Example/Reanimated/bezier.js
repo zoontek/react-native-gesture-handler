@@ -60,7 +60,7 @@ function newtonRaphsonIterate(aX, aGuessT, mX1, mX2) {
   return aGuessT;
 }
 
-module.exports = function bezier(mX1, mY1, mX2, mY2) {
+export default function bezier(mX1, mY1, mX2, mY2) {
   if (!(0 <= mX1 && mX1 <= 1 && 0 <= mX2 && mX2 <= 1)) {
     // eslint-disable-line yoda
     throw new Error('bezier x values must be in [0, 1] range');
@@ -125,4 +125,4 @@ module.exports = function bezier(mX1, mY1, mX2, mY2) {
     }
     return calcBezier(getTForX(x), mY1, mY2);
   };
-};
+}

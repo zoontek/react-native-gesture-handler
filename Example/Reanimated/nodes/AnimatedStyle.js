@@ -1,11 +1,11 @@
-const AnimatedNode = require('./AnimatedNode');
-const AnimatedTransform = require('./AnimatedTransform');
-const AnimatedWithInput = require('./AnimatedWithInput');
-const NativeAnimatedHelper = require('../NativeAnimatedHelper');
+import AnimatedNode from './AnimatedNode';
+import AnimatedTransform from './AnimatedTransform';
+import AnimatedWithInput from './AnimatedWithInput';
+import NativeAnimatedHelper from '../NativeAnimatedHelper';
 
-const flattenStyle = require('flattenStyle');
+import flattenStyle from 'flattenStyle';
 
-class AnimatedStyle extends AnimatedWithInput {
+export default class AnimatedStyle extends AnimatedWithInput {
   constructor(style) {
     style = flattenStyle(style) || {};
     if (style.transform) {
@@ -87,5 +87,3 @@ class AnimatedStyle extends AnimatedWithInput {
     };
   }
 }
-
-module.exports = AnimatedStyle;

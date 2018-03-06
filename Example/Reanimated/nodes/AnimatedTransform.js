@@ -1,6 +1,6 @@
-const AnimatedNode = require('./AnimatedNode');
-const AnimatedWithInput = require('./AnimatedWithInput');
-const NativeAnimatedHelper = require('../NativeAnimatedHelper');
+import AnimatedNode from './AnimatedNode';
+import AnimatedWithInput from './AnimatedWithInput';
+import NativeAnimatedHelper from '../NativeAnimatedHelper';
 
 function extractAnimatedParentNodes(transforms) {
   const parents = [];
@@ -16,7 +16,7 @@ function extractAnimatedParentNodes(transforms) {
   return parents;
 }
 
-class AnimatedTransform extends AnimatedWithInput {
+export default class AnimatedTransform extends AnimatedWithInput {
   constructor(transforms) {
     super(extractAnimatedParentNodes(transforms));
     this._transforms = transforms;
@@ -91,5 +91,3 @@ class AnimatedTransform extends AnimatedWithInput {
     };
   }
 }
-
-module.exports = AnimatedTransform;

@@ -1,9 +1,8 @@
-const AnimatedNode = require('./AnimatedNode');
-const AnimatedWithInput = require('./AnimatedWithInput');
-const NativeAnimatedHelper = require('../NativeAnimatedHelper');
+import AnimatedWithInput from './AnimatedWithInput';
+import NativeAnimatedHelper from '../NativeAnimatedHelper';
 
-const invariant = require('fbjs/lib/invariant');
-const normalizeColor = require('normalizeColor');
+import invariant from 'fbjs/lib/invariant';
+import normalizeColor from 'normalizeColor';
 
 const linear = t => t;
 
@@ -273,7 +272,7 @@ function checkInfiniteRange(name, arr) {
   );
 }
 
-class AnimatedInterpolation extends AnimatedWithInput {
+export default class AnimatedInterpolation extends AnimatedWithInput {
   // Export for testing.
   static __createInterpolation = createInterpolation;
 
@@ -337,5 +336,3 @@ class AnimatedInterpolation extends AnimatedWithInput {
     };
   }
 }
-
-module.exports = AnimatedInterpolation;

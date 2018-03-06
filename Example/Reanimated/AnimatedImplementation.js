@@ -1,19 +1,19 @@
-const { AnimatedEvent, attachNativeEvent } = require('./AnimatedEvent');
-const AnimatedCond = require('./nodes/AnimatedCond');
-const AnimatedSet = require('./nodes/AnimatedSet');
-const AnimatedInterpolation = require('./nodes/AnimatedInterpolation');
-const AnimatedOp = require('./nodes/AnimatedOp');
-const AnimatedOnChange = require('./nodes/AnimatedOnChange');
-const AnimatedNode = require('./nodes/AnimatedNode');
-const AnimatedProps = require('./nodes/AnimatedProps');
-const AnimatedTracking = require('./nodes/AnimatedTracking');
-const AnimatedValue = require('./nodes/AnimatedValue');
-const AnimatedValueXY = require('./nodes/AnimatedValueXY');
-const DecayAnimation = require('./animations/DecayAnimation');
-const SpringAnimation = require('./animations/SpringAnimation');
-const TimingAnimation = require('./animations/TimingAnimation');
+import { AnimatedEvent, attachNativeEvent } from './AnimatedEvent';
+import AnimatedCond from './nodes/AnimatedCond';
+import AnimatedSet from './nodes/AnimatedSet';
+import AnimatedInterpolation from './nodes/AnimatedInterpolation';
+import AnimatedOp from './nodes/AnimatedOp';
+import AnimatedOnChange from './nodes/AnimatedOnChange';
+import AnimatedNode from './nodes/AnimatedNode';
+import AnimatedProps from './nodes/AnimatedProps';
+import AnimatedTracking from './nodes/AnimatedTracking';
+import AnimatedBlock from './nodes/AnimatedBlock';
+import AnimatedValue from './nodes/AnimatedValue';
+import DecayAnimation from './animations/DecayAnimation';
+import SpringAnimation from './animations/SpringAnimation';
+import TimingAnimation from './animations/TimingAnimation';
 
-const createAnimatedComponent = require('./createAnimatedComponent');
+import createAnimatedComponent from './createAnimatedComponent';
 
 const add = function(a, b) {
   return new AnimatedOp([a, b], ([a, b]) => a + b);
@@ -59,7 +59,7 @@ const and = function(a, b) {
 };
 
 const block = function(items) {
-  return new AnimatedOp(items, values => values[values.length - 1]);
+  return new AnimatedBlock(items);
 };
 
 const call = function(items, func) {
@@ -117,22 +117,6 @@ const _combineCallbacks = function(callback, config) {
 };
 
 const maybeVectorAnim = function(value, config, anim) {
-  if (value instanceof AnimatedValueXY) {
-    const configX = { ...config };
-    const configY = { ...config };
-    for (const key in config) {
-      const { x, y } = config[key];
-      if (x !== undefined && y !== undefined) {
-        configX[key] = x;
-        configY[key] = y;
-      }
-    }
-    const aX = anim(value.x, configX);
-    const aY = anim(value.y, configY);
-    // We use `stopTogether: false` here because otherwise tracking will break
-    // because the second animation will get stopped before it can update.
-    return parallel([aX, aY], { stopTogether: false });
-  }
   return null;
 };
 
@@ -493,12 +477,6 @@ module.exports = {
    * See http://facebook.github.io/react-native/docs/animated.html#value
    */
   Value: AnimatedValue,
-  /**
-   * 2D value class for driving 2D animations, such as pan gestures.
-   *
-   * See https://facebook.github.io/react-native/releases/next/docs/animatedvaluexy.html
-   */
-  ValueXY: AnimatedValueXY,
   /**
    * Exported to use the Interpolation type in flow.
    *

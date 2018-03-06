@@ -1,6 +1,4 @@
-'use strict';
-
-const AnimatedValue = require('./AnimatedValue');
+import AnimatedValue from './AnimatedValue';
 
 class AnimatedClock extends AnimatedValue {
   _frameCallback;
@@ -34,6 +32,4 @@ class AnimatedClock extends AnimatedValue {
 
 const clock = new AnimatedClock();
 
-module.exports = {
-  clock,
-};
+export { clock };

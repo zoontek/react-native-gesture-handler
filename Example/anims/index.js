@@ -22,27 +22,6 @@ class Snappable extends Component {
       { nativeEvent: { state: this._state } },
     ]);
 
-    // const diff = Animated.diff(this._dragX);
-
-    const v = this._dragX;
-    const stash = new Animated.Value(0);
-    const prev = new Animated.Value();
-    const diff = Animated.block([
-      Animated.set(
-        stash,
-        Animated.cond(
-          Animated.defined(prev),
-          Animated.add(v, Animated.multiply(-1, prev)),
-          0
-        )
-      ),
-      Animated.set(
-        prev,
-        Animated.cond(Animated.eq(this._state, State.ACTIVE), v, 0)
-      ),
-      Animated.cond(Animated.eq(this._state, State.ACTIVE), stash, 0),
-    ]);
-
     const transX = new Animated.Value(0);
 
     const springFinished = new Animated.Value(0);
@@ -73,34 +52,41 @@ class Snappable extends Component {
     const springStep = new SpringNode(clock, springState, springConfig);
     const prevState = new Animated.Value(-1);
 
-    const stash2 = new Animated.Value(0);
+    const stash = new Animated.Value(0);
+    const prev = new Animated.Value(0);
 
     this._transX = Animated.set(
       transX,
       Animated.block([
-        Animated.set(
-          stash2,
-          Animated.cond(
-            Animated.eq(this._state, State.ACTIVE),
-            Animated.add(transX, diff),
-            Animated.block([
-              Animated.cond(
-                Animated.eq(prevState, State.ACTIVE),
-                Animated.block([
-                  Animated.set(springFinished, ZERO),
-                  Animated.set(springVelocity, ZERO),
-                  Animated.set(springValue, transX),
-                  Animated.set(springTime, ZERO),
-                ]),
-                Animated.block([])
-              ),
-              springStep,
-              springValue,
-            ])
-          )
+        Animated.cond(
+          Animated.eq(this._state, State.ACTIVE),
+          Animated.block([
+            Animated.set(
+              stash,
+              Animated.add(
+                transX,
+                Animated.add(this._dragX, Animated.multiply(-1, prev))
+              )
+            ),
+            Animated.set(prev, this._dragX),
+          ]),
+          Animated.block([
+            Animated.cond(
+              Animated.eq(prevState, State.ACTIVE),
+              Animated.block([
+                Animated.set(springFinished, ZERO),
+                Animated.set(springVelocity, ZERO),
+                Animated.set(springValue, transX),
+                Animated.set(springTime, ZERO),
+                Animated.set(prev, ZERO),
+              ])
+            ),
+            springStep,
+            Animated.set(stash, springValue),
+          ])
         ),
         Animated.set(prevState, this._state),
-        stash2,
+        stash,
       ])
     );
   }

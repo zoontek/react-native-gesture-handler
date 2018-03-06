@@ -1,9 +1,8 @@
-const AnimatedInterpolation = require('./AnimatedInterpolation');
-const AnimatedNode = require('./AnimatedNode');
-const AnimatedWithInput = require('./AnimatedWithInput');
-const InteractionManager = require('InteractionManager');
-const NativeAnimatedHelper = require('../NativeAnimatedHelper');
-const CoreAnimated = require('../CoreAnimated');
+import AnimatedInterpolation from './AnimatedInterpolation';
+import AnimatedWithInput from './AnimatedWithInput';
+import InteractionManager from 'InteractionManager';
+import NativeAnimatedHelper from '../NativeAnimatedHelper';
+import { onNodeUpdated } from '../CoreAnimated';
 
 const NativeAnimatedAPI = NativeAnimatedHelper.API;
 
@@ -17,7 +16,7 @@ let _uniqueId = 1;
  *
  * See http://facebook.github.io/react-native/docs/animatedvalue.html
  */
-class AnimatedValue extends AnimatedWithInput {
+export default class AnimatedValue extends AnimatedWithInput {
   constructor(value) {
     super();
     this._startingValue = this._value = value;
@@ -256,7 +255,7 @@ class AnimatedValue extends AnimatedWithInput {
 
   _updateValue(value, flush) {
     this._value = value;
-    CoreAnimated.onNodeUpdated(this);
+    onNodeUpdated(this);
     for (const key in this._listeners) {
       this._listeners[key]({ value: this.__getValue() });
     }
@@ -270,5 +269,3 @@ class AnimatedValue extends AnimatedWithInput {
     };
   }
 }
-
-module.exports = AnimatedValue;

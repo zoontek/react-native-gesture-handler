@@ -1,8 +1,6 @@
-'use strict';
+import AnimatedWithInput from './AnimatedWithInput';
 
-const AnimatedWithInput = require('./AnimatedWithInput');
-
-class AnimatedSet extends AnimatedWithInput {
+export default class AnimatedSet extends AnimatedWithInput {
   _what;
   _value;
 
@@ -19,5 +17,3 @@ class AnimatedSet extends AnimatedWithInput {
     return newValue;
   }
 }
-
-module.exports = AnimatedSet;

@@ -1,13 +1,7 @@
-'use strict';
+import { val } from '../utils';
+import AnimatedWithInput from './AnimatedWithInput';
 
-const AnimatedNode = require('./AnimatedNode');
-const AnimatedWithInput = require('./AnimatedWithInput');
-
-function val(v) {
-  return v.__getValue ? v.__getValue() : v;
-}
-
-class AnimatedCond extends AnimatedWithInput {
+export default class AnimatedCond extends AnimatedWithInput {
   _condition;
   _ifBlock;
   _elseBlock;
@@ -23,9 +17,7 @@ class AnimatedCond extends AnimatedWithInput {
     if (val(this._condition)) {
       return val(this._ifBlock);
     } else {
-      return val(this._elseBlock);
+      return this._elseBlock ? val(this._elseBlock) : undefined;
     }
   }
 }
-
-module.exports = AnimatedCond;

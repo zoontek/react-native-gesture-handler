@@ -1,4 +1,3 @@
-const ATTACHED_PROPS_SET = new Set();
 const UPDATED_NODES = [];
 
 let loopID = 1;
@@ -41,7 +40,4 @@ function evaluate(node) {
   return node.__memoizedValue;
 }
 
-module.exports = {
-  onNodeUpdated,
-  evaluate,
-};
+export { onNodeUpdated, evaluate };

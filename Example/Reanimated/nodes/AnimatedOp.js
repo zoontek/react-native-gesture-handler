@@ -1,9 +1,7 @@
-'use strict';
+import AnimatedNode from './AnimatedNode';
+import AnimatedWithInput from './AnimatedWithInput';
 
-const AnimatedNode = require('./AnimatedNode');
-const AnimatedWithInput = require('./AnimatedWithInput');
-
-class AnimatedOp extends AnimatedWithInput {
+export default class AnimatedOp extends AnimatedWithInput {
   _inputNodes;
   _processor;
 
@@ -21,5 +19,3 @@ class AnimatedOp extends AnimatedWithInput {
     );
   }
 }
-
-module.exports = AnimatedOp;

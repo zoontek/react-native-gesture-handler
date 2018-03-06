@@ -1,8 +1,6 @@
-'use strict';
+import AnimatedNode from './AnimatedNode';
 
-const AnimatedNode = require('./AnimatedNode');
-
-class AnimatedDetach extends AnimatedNode {
+export default class AnimatedDetach extends AnimatedNode {
   _nodeToDetach;
 
   constructor(nodeToDetach) {
@@ -15,5 +13,3 @@ class AnimatedDetach extends AnimatedNode {
     return 0;
   }
 }
-
-module.exports = AnimatedDetach;

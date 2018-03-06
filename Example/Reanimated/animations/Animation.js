@@ -1,4 +1,4 @@
-const NativeAnimatedHelper = require('NativeAnimatedHelper');
+import NativeAnimatedHelper from 'NativeAnimatedHelper';
 
 // Important note: start() and stop() will only be called at most once.
 // Once an animation has been stopped or finished its course, it will
@@ -33,4 +33,4 @@ class Animation {
   }
 }
 
-module.exports = Animation;
+export default Animation;

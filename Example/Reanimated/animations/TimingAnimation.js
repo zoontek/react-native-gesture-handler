@@ -1,16 +1,13 @@
-'use strict';
+import AnimatedValue from '../nodes/AnimatedValue';
+import AnimatedNode from '../nodes/AnimatedNode';
+import TimingStep from '../nodes/TimingStep';
+import Animation from './Animation';
 
-const AnimatedValue = require('../nodes/AnimatedValue');
-const AnimatedNode = require('../nodes/AnimatedNode');
-const AnimatedValueXY = require('../nodes/AnimatedValueXY');
-const TimingStep = require('../nodes/TimingStep');
-const Animation = require('./Animation');
+import { clock } from '../nodes/AnimatedClock';
+import AnimatedOnChange from '../nodes/AnimatedOnChange';
+import AnimatedDetach from '../nodes/AnimatedDetach';
 
-const { clock } = require('../nodes/AnimatedClock');
-const AnimatedOnChange = require('../nodes/AnimatedOnChange');
-const AnimatedDetach = require('../nodes/AnimatedDetach');
-
-const { shouldUseNativeDriver } = require('../NativeAnimatedHelper');
+import { shouldUseNativeDriver } from '../NativeAnimatedHelper';
 
 let _easeInOut;
 function easeInOut() {
@@ -43,7 +40,7 @@ function proxyAnimatedState(target) {
   return new Proxy(target, handler);
 }
 
-class TimingAnimation extends Animation {
+export default class TimingAnimation extends Animation {
   _startTime;
   _fromValue;
   _toValue;
@@ -93,5 +90,3 @@ class TimingAnimation extends Animation {
     this._finished && this._finished.setValue(1);
   }
 }
-
-module.exports = TimingAnimation;

@@ -1,7 +1,5 @@
-'use strict';
-
-const AnimatedNode = require('./AnimatedNode');
-const AnimatedWithInput = require('./AnimatedWithInput');
+import AnimatedNode from './AnimatedNode';
+import AnimatedWithInput from './AnimatedWithInput';
 
 const MAX_STEPS_MS = 64;
 
@@ -105,7 +103,7 @@ function proxyAnimatedObject(target) {
   return new Proxy(target, handler);
 }
 
-class SpringNode extends AnimatedWithInput {
+export default class SpringNode extends AnimatedWithInput {
   _clock;
   _state;
   _config;
@@ -125,5 +123,3 @@ class SpringNode extends AnimatedWithInput {
     spring(this._clock.__getValue(), this._state, this._config);
   }
 }
-
-module.exports = SpringNode;

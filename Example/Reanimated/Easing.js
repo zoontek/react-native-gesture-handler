@@ -45,7 +45,7 @@ let ease;
  * - [`inOut`](docs/easing.html#inout) makes any easing function symmetrical
  * - [`out`](docs/easing.html#out) runs an easing function backwards
  */
-class Easing {
+export default class Easing {
   /**
    * A stepping function, returns 1 for any positive value of `n`.
    */
@@ -234,5 +234,3 @@ class Easing {
     };
   }
 }
-
-module.exports = Easing;

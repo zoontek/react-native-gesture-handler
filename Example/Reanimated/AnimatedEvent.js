@@ -1,9 +1,10 @@
-const AnimatedValue = require('./nodes/AnimatedValue');
-const NativeAnimatedHelper = require('./NativeAnimatedHelper');
-const ReactNative = require('ReactNative');
+import AnimatedValue from './nodes/AnimatedValue';
+import NativeAnimatedHelper, {
+  shouldUseNativeDriver,
+} from './NativeAnimatedHelper';
+import ReactNative from 'ReactNative';
 
-const invariant = require('fbjs/lib/invariant');
-const { shouldUseNativeDriver } = require('./NativeAnimatedHelper');
+import invariant from 'fbjs/lib/invariant';
 
 function attachNativeEvent(viewRef, eventName, argMapping) {
   // Find animated values in `argMapping` and create an array representing their
@@ -163,4 +164,4 @@ class AnimatedEvent {
   }
 }
 
-module.exports = { AnimatedEvent, attachNativeEvent };
+export { AnimatedEvent, attachNativeEvent };

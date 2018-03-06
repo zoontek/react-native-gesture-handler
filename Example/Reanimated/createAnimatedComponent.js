@@ -1,11 +1,11 @@
-const { AnimatedEvent } = require('./AnimatedEvent');
-const AnimatedProps = require('./nodes/AnimatedProps');
-const React = require('React');
-const ViewStylePropTypes = require('ViewStylePropTypes');
+import { AnimatedEvent } from './AnimatedEvent';
+import AnimatedProps from './nodes/AnimatedProps';
+import React from 'React';
+import ViewStylePropTypes from 'ViewStylePropTypes';
 
-const invariant = require('fbjs/lib/invariant');
+import invariant from 'fbjs/lib/invariant';
 
-function createAnimatedComponent(Component) {
+export default function createAnimatedComponent(Component) {
   invariant(
     typeof Component === 'stringy' ||
       (Component.prototype && Component.prototype.isReactComponent),
@@ -186,5 +186,3 @@ function createAnimatedComponent(Component) {
 
   return AnimatedComponent;
 }
-
-module.exports = createAnimatedComponent;

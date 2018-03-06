@@ -1,17 +1,15 @@
-const AnimatedValue = require('../nodes/AnimatedValue');
-const AnimatedNode = require('../nodes/AnimatedNode');
-const AnimatedValueXY = require('../nodes/AnimatedValueXY');
-const Animation = require('./Animation');
-const SpringConfig = require('../SpringConfig');
-const SpringNode = require('../nodes/SpringNode');
-const AnimatedOnChange = require('../nodes/AnimatedOnChange');
-const AnimatedDetach = require('../nodes/AnimatedDetach');
-const AnimatedOp = require('../nodes/AnimatedOp');
+import AnimatedValue from '../nodes/AnimatedValue';
+import Animation from './Animation';
+import SpringConfig from '../SpringConfig';
+import SpringNode from '../nodes/SpringNode';
+import AnimatedOnChange from '../nodes/AnimatedOnChange';
+import AnimatedDetach from '../nodes/AnimatedDetach';
+import AnimatedOp from '../nodes/AnimatedOp';
 
-const { clock } = require('../nodes/AnimatedClock');
+import { clock } from '../nodes/AnimatedClock';
 
-const invariant = require('fbjs/lib/invariant');
-const { shouldUseNativeDriver } = require('../NativeAnimatedHelper');
+import invariant from 'fbjs/lib/invariant';
+import { shouldUseNativeDriver } from '../NativeAnimatedHelper';
 
 function withDefault(value, defaultValue) {
   if (value === undefined || value === null) {
@@ -20,7 +18,7 @@ function withDefault(value, defaultValue) {
   return value;
 }
 
-class SpringAnimation extends Animation {
+export default class SpringAnimation extends Animation {
   constructor(config) {
     super();
 
@@ -107,7 +105,6 @@ class SpringAnimation extends Animation {
       restSpeedThreshold: this._restSpeedThreshold,
       restDisplacementThreshold: this._restDisplacementThreshold,
     };
-    console.log('CONFG', config);
 
     const step = new SpringNode(clock, state, config);
     const detach = new AnimatedDetach(step);
@@ -126,5 +123,3 @@ class SpringAnimation extends Animation {
     this._finished && this._finished.setValue(1);
   }
 }
-
-module.exports = SpringAnimation;

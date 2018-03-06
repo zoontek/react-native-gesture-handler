@@ -10,4 +10,4 @@ const Animated = {
 
 Object.assign(Animated, AnimatedImplementation);
 
-module.exports = Animated;
+export default Animated;

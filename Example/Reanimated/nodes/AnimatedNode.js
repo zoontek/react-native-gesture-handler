@@ -1,11 +1,11 @@
-const NativeAnimatedHelper = require('../NativeAnimatedHelper');
-const CoreAnimated = require('../CoreAnimated');
+import NativeAnimatedHelper from '../NativeAnimatedHelper';
+import { evaluate } from '../CoreAnimated';
 
-const invariant = require('fbjs/lib/invariant');
+import invariant from 'fbjs/lib/invariant';
 
 // Note(vjeux): this would be better as an interface but flow doesn't
 // support them yet
-class AnimatedNode {
+export default class AnimatedNode {
   __attach() {}
   __detach() {
     if (this.__isNative && this.__nativeTag != null) {
@@ -14,7 +14,7 @@ class AnimatedNode {
     }
   }
   __getValue() {
-    return CoreAnimated.evaluate(this);
+    return evaluate(this);
   }
   __onEvaluate() {
     throw new Excaption('Missing implementation of onEvaluate');
@@ -95,5 +95,3 @@ class AnimatedNode {
     return this.__getValue();
   }
 }
-
-module.exports = AnimatedNode;

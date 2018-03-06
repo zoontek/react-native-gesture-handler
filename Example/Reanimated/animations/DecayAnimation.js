@@ -1,6 +1,6 @@
-const Animation = require('./Animation');
+import Animation from './Animation';
 
-const { shouldUseNativeDriver } = require('../NativeAnimatedHelper');
+import { shouldUseNativeDriver } from '../NativeAnimatedHelper';
 
 class DecayAnimation extends Animation {
   constructor(config) {
@@ -67,4 +67,4 @@ class DecayAnimation extends Animation {
   }
 }
 
-module.exports = DecayAnimation;
+export default DecayAnimation;

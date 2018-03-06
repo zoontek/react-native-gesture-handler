@@ -1,7 +1,6 @@
-const AnimatedNode = require('./AnimatedNode');
-const NativeAnimatedHelper = require('../NativeAnimatedHelper');
+import AnimatedNode from './AnimatedNode';
 
-class AnimatedWithInput extends AnimatedNode {
+export default class AnimatedWithInput extends AnimatedNode {
   constructor(inputNodes) {
     super();
     this.__inputNodes =
@@ -20,5 +19,3 @@ class AnimatedWithInput extends AnimatedNode {
     super.__detach();
   }
 }
-
-module.exports = AnimatedWithInput;

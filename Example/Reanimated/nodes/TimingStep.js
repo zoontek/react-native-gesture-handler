@@ -1,7 +1,4 @@
-'use strict';
-
-const AnimatedNode = require('./AnimatedNode');
-const AnimatedWithInput = require('./AnimatedWithInput');
+import AnimatedWithInput from './AnimatedWithInput';
 
 function val(valueOrNumber) {
   return valueOrNumber.__getValue ? valueOrNumber.__getValue() : valueOrNumber;
@@ -27,7 +24,7 @@ function timing(now, state, config, easing) {
   state.time = now;
 }
 
-class TimingStep extends AnimatedWithInput {
+export default class TimingStep extends AnimatedWithInput {
   _state;
   _config;
   _easing;
@@ -49,5 +46,3 @@ class TimingStep extends AnimatedWithInput {
     timing(this._clock.__getValue(), this._state, this._config, this._easing);
   }
 }
-
-module.exports = TimingStep;

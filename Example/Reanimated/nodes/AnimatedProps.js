@@ -1,12 +1,12 @@
-const { AnimatedEvent } = require('../AnimatedEvent');
-const AnimatedNode = require('./AnimatedNode');
-const AnimatedStyle = require('./AnimatedStyle');
-const NativeAnimatedHelper = require('../NativeAnimatedHelper');
-const ReactNative = require('ReactNative');
+import { AnimatedEvent } from '../AnimatedEvent';
+import AnimatedNode from './AnimatedNode';
+import AnimatedStyle from './AnimatedStyle';
+import NativeAnimatedHelper from '../NativeAnimatedHelper';
+import ReactNative from 'ReactNative';
 
-const invariant = require('fbjs/lib/invariant');
+import invariant from 'fbjs/lib/invariant';
 
-class AnimatedProps extends AnimatedNode {
+export default class AnimatedProps extends AnimatedNode {
   constructor(props, callback) {
     super();
     if (props.style) {
@@ -152,5 +152,3 @@ class AnimatedProps extends AnimatedNode {
     };
   }
 }
-
-module.exports = AnimatedProps;
