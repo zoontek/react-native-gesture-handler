@@ -3,7 +3,7 @@ import { proxyAnimatedObject, val } from '../utils';
 
 const MAX_STEPS_MS = 64;
 
-function spring(now, state, config) {
+function spring(now, toValue, state, config) {
   const lastTimeMs = state.time || now;
   const lastPosition = state.position;
   const lastVelocity = state.velocity;
@@ -14,7 +14,7 @@ function spring(now, state, config) {
   const m = config.mass;
   const k = config.stiffness;
   const v0 = -lastVelocity;
-  const x0 = config.toValue - lastPosition;
+  const x0 = toValue - lastPosition;
 
   const zeta = c / (2 * Math.sqrt(k * m)); // damping ratio
   const omega0 = Math.sqrt(k / m); // undamped angular frequency of the oscillator (rad/ms)
@@ -23,11 +23,12 @@ function spring(now, state, config) {
   let position = 0.0;
   let velocity = 0.0;
   const t = deltaTimeMs / 1000.0; // in seconds
+  // throw new Error('ddd');
   if (zeta < 1) {
     // Under damped
     const envelope = Math.exp(-zeta * omega0 * t);
     position =
-      config.toValue -
+      toValue -
       envelope *
         ((v0 + zeta * omega0 * x0) / omega1 * Math.sin(omega1 * t) +
           x0 * Math.cos(omega1 * t));
@@ -45,7 +46,7 @@ function spring(now, state, config) {
   } else {
     // Critically damped
     const envelope = Math.exp(-omega0 * t);
-    position = config.toValue - envelope * (x0 + (v0 + omega0 * x0) * t);
+    position = toValue - envelope * (x0 + (v0 + omega0 * x0) * t);
     velocity = envelope * (v0 * (t * omega0 - 1) + t * x0 * (omega0 * omega0));
   }
 
@@ -57,24 +58,24 @@ function spring(now, state, config) {
   // Conditions for stopping the spring animation
   let isOvershooting = false;
   if (config.overshootClamping && config.stiffness !== 0) {
-    if (lastPosition < config.toValue) {
-      isOvershooting = position > config.toValue;
+    if (lastPosition < toValue) {
+      isOvershooting = position > toValue;
     } else {
-      isOvershooting = position < config.toValue;
+      isOvershooting = position < toValue;
     }
   }
   const isVelocity = Math.abs(velocity) <= config.restSpeedThreshold;
   let isDisplacement = true;
   if (config.stiffness !== 0) {
     isDisplacement =
-      Math.abs(config.toValue - position) <= config.restDisplacementThreshold;
+      Math.abs(toValue - position) <= config.restDisplacementThreshold;
   }
 
   if (isOvershooting || (isVelocity && isDisplacement)) {
     if (config.stiffness !== 0) {
       // Ensure that we end up with a round value
       state.velocity = 0;
-      state.position = config.toValue;
+      state.position = toValue;
     }
 
     state.finished = true;
@@ -85,12 +86,14 @@ export default class SpringNode extends AnimatedWithInput {
   _clock;
   _state;
   _config;
+  _toValue;
 
-  constructor(clock, state, config) {
+  constructor(clock, toValue, state, config) {
     super([clock]);
     this._clock = clock;
     this._state = proxyAnimatedObject(state);
-    this._config = proxyAnimatedObject(config);
+    this._toValue = toValue;
+    this._config = config;
   }
 
   update() {
@@ -98,6 +101,6 @@ export default class SpringNode extends AnimatedWithInput {
   }
 
   __onEvaluate() {
-    spring(val(this._clock), this._state, this._config);
+    spring(val(this._clock), val(this._toValue), this._state, this._config);
   }
 }

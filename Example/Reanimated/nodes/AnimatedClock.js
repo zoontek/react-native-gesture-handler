@@ -1,6 +1,7 @@
 import AnimatedValue from './AnimatedValue';
+import { val } from '../utils';
 
-class AnimatedClock extends AnimatedValue {
+class AnimatedMainClock extends AnimatedValue {
   _frameCallback;
 
   constructor() {
@@ -30,6 +31,46 @@ class AnimatedClock extends AnimatedValue {
   }
 }
 
-const clock = new AnimatedClock();
+const mainClock = new AnimatedMainClock();
 
+export default class AnimatedClock extends AnimatedValue {
+  _started;
+  _attached;
+
+  __onEvaluate() {
+    return val(mainClock);
+  }
+
+  __attach() {
+    super.__attach();
+    if (this._started && !this._attached) {
+      mainClock.__addChild(this);
+    }
+    this._attached = true;
+  }
+
+  __detach() {
+    if (this._started && this._attached) {
+      mainClock.__removeChild(this);
+    }
+    this._attached = false;
+    super.__detach();
+  }
+
+  start() {
+    if (!this._started && this._attached) {
+      mainClock.__addChild(this);
+    }
+    this._started = true;
+  }
+
+  stop() {
+    if (this._started && this._attached) {
+      mainClock.__removeChild(this);
+    }
+    this._started = false;
+  }
+}
+
+const clock = mainClock;
 export { clock };

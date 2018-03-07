@@ -11,6 +11,10 @@ import AnimatedValue from './nodes/AnimatedValue';
 import DecayAnimation from './animations/DecayAnimation';
 import SpringAnimation from './animations/SpringAnimation';
 import TimingAnimation from './animations/TimingAnimation';
+import SpringNode from './nodes/SpringNode';
+import AnimatedClock from './nodes/AnimatedClock';
+import AnimatedStartClock from './nodes/AnimatedStartClock';
+import AnimatedStopClock from './nodes/AnimatedStopClock';
 
 import { adapt } from './utils';
 import createAnimatedComponent from './createAnimatedComponent';
@@ -111,6 +115,14 @@ const diffClamp = function(a, minVal, maxVal) {
   );
 };
 
+const startClock = function(clock) {
+  return new AnimatedStartClock(clock);
+};
+
+const stopClock = function(clock) {
+  return new AnimatedStopClock(clock);
+};
+
 const _combineCallbacks = function(callback, config) {
   if (callback && config.onComplete) {
     return (...args) => {
@@ -126,7 +138,12 @@ const maybeVectorAnim = function(value, config, anim) {
   return null;
 };
 
-const spring = function(value, config) {
+const spring = function(clock, toValue, springState, springConfig) {
+  if (springState !== undefined) {
+    return new SpringNode(clock, adapt(toValue), springState, springConfig);
+  }
+  const value = clock; // for compatibility with Animated lib
+  const config = toValue;
   const start = function(animatedValue, configuration, callback) {
     callback = _combineCallbacks(callback, configuration);
     const singleValue = animatedValue;
@@ -146,30 +163,28 @@ const spring = function(value, config) {
       singleValue.animate(new SpringAnimation(singleConfig), callback);
     }
   };
-  return (
-    maybeVectorAnim(value, config, spring) || {
-      start: function(callback) {
-        start(value, config, callback);
-      },
+  return {
+    start: function(callback) {
+      start(value, config, callback);
+    },
 
-      stop: function() {
-        value.stopAnimation();
-      },
+    stop: function() {
+      value.stopAnimation();
+    },
 
-      reset: function() {
-        value.resetAnimation();
-      },
+    reset: function() {
+      value.resetAnimation();
+    },
 
-      _startNativeLoop: function(iterations) {
-        const singleConfig = { ...config, iterations };
-        start(value, singleConfig);
-      },
+    _startNativeLoop: function(iterations) {
+      const singleConfig = { ...config, iterations };
+      start(value, singleConfig);
+    },
 
-      _isUsingNativeDriver: function() {
-        return config.useNativeDriver || false;
-      },
-    }
-  );
+    _isUsingNativeDriver: function() {
+      return config.useNativeDriver || false;
+    },
+  };
 };
 
 const timing = function(value, config) {
@@ -541,6 +556,9 @@ module.exports = {
   diff,
   defined,
   acc,
+  startClock,
+  stopClock,
+  Clock: AnimatedClock,
 
   /**
    * Creates a new Animated value composed by dividing the first Animated value

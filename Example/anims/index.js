@@ -3,40 +3,49 @@ import { StyleSheet, View } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 
 import Animated from '../Reanimated/Animated';
-import SpringNode from '../Reanimated/nodes/SpringNode';
-import { clock } from '../Reanimated/nodes/AnimatedClock';
 
 class Snappable extends Component {
   constructor(props) {
     super(props);
-    this._dragX = new Animated.Value(0);
-    this._state = new Animated.Value(-1);
-    // this._transX = this._dragX.interpolate({
-    //   inputRange: [-100, -50, 0, 50, 100],
-    //   outputRange: [-30, -10, 0, 10, 30],
-    // });
-    this._onGestureEvent = Animated.event([
-      { nativeEvent: { translationX: this._dragX } },
+
+    const {
+      set,
+      cond,
+      eq,
+      add,
+      multiply,
+      lessThan,
+      spring,
+      startClock,
+      stopClock,
+      Value,
+      Clock,
+      event,
+    } = Animated;
+
+    const TOSS_SEC = 0.2;
+
+    const dragX = new Value(0);
+    const state = new Value(-1);
+    const dragVX = new Value(0);
+
+    this._onGestureEvent = event([
+      { nativeEvent: { translationX: dragX, velocityX: dragVX } },
     ]);
-    this._onHandlerStateChange = Animated.event([
-      { nativeEvent: { state: this._state } },
-    ]);
+    this._onHandlerStateChange = event([{ nativeEvent: { state: state } }]);
 
-    const transX = new Animated.Value(0);
+    const transX = new Value(0);
+    const prevState = new Value(-1);
+    const prevDragX = new Value(0);
+    const springTo = new Value(0);
 
-    const springFinished = new Animated.Value(0);
-    const springVelocity = new Animated.Value(0);
-    const springValue = new Animated.Value(0);
-    const springTime = new Animated.Value(0);
-    const springToValue = new Animated.Value(0);
-
-    const ZERO = new Animated.Value(0);
+    const clock = new Clock();
 
     const springState = {
-      finished: springFinished,
-      velocity: springVelocity,
-      position: springValue,
-      time: springTime,
+      finished: new Value(0),
+      velocity: new Value(0),
+      position: new Value(0),
+      time: new Value(0),
     };
 
     const springConfig = {
@@ -46,61 +55,40 @@ class Snappable extends Component {
       overshootClamping: false,
       restSpeedThreshold: 0.001,
       restDisplacementThreshold: 0.001,
-      toValue: springToValue,
     };
 
-    const springStep = new SpringNode(clock, springState, springConfig);
-    const prevState = new Animated.Value(-1);
-
-    const stash = new Animated.Value(0);
-    const prev = new Animated.Value(0);
-
-    const { set, cond, eq, add, multiply } = Animated;
-
-    this._transX = set(transX, [
-      cond(
-        eq(this._state, State.ACTIVE),
-        [
-          set(stash, add(transX, add(this._dragX, multiply(-1, prev)))),
-          set(prev, this._dragX),
-        ],
-        [
-          cond(eq(prevState, State.ACTIVE), [
-            set(springFinished, ZERO),
-            set(springVelocity, ZERO),
-            set(springValue, transX),
-            set(springTime, ZERO),
-            set(prev, ZERO),
-          ]),
-          springStep,
-          set(stash, springValue),
-        ]
-      ),
-      set(prevState, this._state),
-      stash,
-    ]);
+    this._transX = cond(
+      eq(state, State.ACTIVE),
+      [
+        set(transX, add(transX, add(dragX, multiply(-1, prevDragX)))),
+        set(springState.time, clock),
+        set(prevDragX, dragX),
+        set(prevState, state),
+        transX,
+      ],
+      [
+        cond(eq(prevState, State.ACTIVE), [
+          set(springState.finished, 0),
+          set(springState.velocity, dragVX),
+          set(springState.position, transX),
+          set(
+            springTo,
+            cond(
+              lessThan(add(transX, multiply(TOSS_SEC, dragVX)), 0),
+              -100,
+              100
+            )
+          ),
+          set(prevDragX, 0),
+          startClock(clock),
+        ]),
+        spring(clock, springTo, springState, springConfig),
+        cond(springState.finished, stopClock(clock)),
+        set(prevState, state),
+        set(transX, springState.position),
+      ]
+    );
   }
-  // constructor(props) {
-  //   super(props);
-  //   this._dragX = new Animated.Value(0);
-  //   this._transX = this._dragX.interpolate({
-  //     inputRange: [-100, -50, 0, 50, 100],
-  //     outputRange: [-30, -10, 0, 10, 30],
-  //   });
-  //   this._onGestureEvent = Animated.event([
-  //     { nativeEvent: { translationX: this._dragX } },
-  //   ]);
-  // }
-  // _onHandlerStateChange = event => {
-  //   if (event.nativeEvent.oldState === State.ACTIVE) {
-  //     Animated.spring(this._dragX, {
-  //       velocity: event.nativeEvent.velocityX,
-  //       tension: 10,
-  //       friction: 2,
-  //       toValue: 0,
-  //     }).start();
-  //   }
-  // };
   render() {
     const { children } = this.props;
     return (
