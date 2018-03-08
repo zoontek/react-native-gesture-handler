@@ -58,8 +58,6 @@ class Viewer extends Component {
   constructor(props) {
     super(props);
 
-    const stash = new Value(1);
-
     // PINCH
     const pinchScale = new Value(1);
     const pinchFocalX = new Value(0);
