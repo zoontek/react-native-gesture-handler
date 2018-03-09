@@ -255,7 +255,7 @@ export default class AnimatedValue extends AnimatedWithInput {
 
   _updateValue(value, flush) {
     this._value = value;
-    onNodeUpdated(this);
+    onNodeUpdated(this, value);
     for (const key in this._listeners) {
       this._listeners[key]({ value: this.__getValue() });
     }

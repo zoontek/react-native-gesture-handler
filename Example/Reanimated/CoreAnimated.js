@@ -26,7 +26,8 @@ function runPropUpdates() {
   loopID += 1;
 }
 
-function onNodeUpdated(node) {
+function onNodeUpdated(node, value) {
+  node.__memoizedValue = value;
   UPDATED_NODES.push(node);
   if (!propUpdatesEnqueued) {
     propUpdatesEnqueued = setImmediate(runPropUpdates);

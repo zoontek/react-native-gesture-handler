@@ -146,11 +146,8 @@ function springy(value, gestureActive, gestureDelta, scale, length) {
           startClock(clock),
         ]),
         spring(clock, springTo, springState, springConfig),
-        cond(
-          springState.finished,
-          [stopClock(clock), springTo],
-          springState.position
-        ),
+        cond(springState.finished, stopClock(clock)),
+        springState.position,
       ],
       value
     )
