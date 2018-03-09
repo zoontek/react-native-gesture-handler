@@ -117,14 +117,11 @@ function springy(value, gestureActive, gestureDelta, scale, length) {
     [gestureDelta, gestureActive], // use gestureDelta here to make sure it gets updated even when gesture is inactive
     [
       stopClock(clock),
-      set(
+      add(
         value,
-        add(
-          value,
-          divide(
-            gestureDelta,
-            friction(overLimit(add(value, gestureDelta), scale, length))
-          )
+        divide(
+          gestureDelta,
+          friction(overLimit(add(value, gestureDelta), scale, length))
         )
       ),
     ],
@@ -141,7 +138,7 @@ function springy(value, gestureActive, gestureDelta, scale, length) {
         ]),
         spring(clock, springTo, springState, springConfig),
         cond(springState.finished, stopClock(clock)),
-        set(value, springState.position),
+        springState.position,
       ],
       value
     )
@@ -188,6 +185,11 @@ class Viewer extends Component {
       },
     ]);
 
+    const gesturesActive = or(
+      eq(panState, State.ACTIVE),
+      eq(pinchState, State.ACTIVE)
+    );
+
     // X
     const dragDivX = makeDragDiv(panState, dragX);
     const panTransX = new Value(0);
@@ -208,12 +210,15 @@ class Viewer extends Component {
     );
     // We update translateX with the component that comes from the scaling focal
     // point (`focalTransX`) and component that comes from panning (`dragDivX`).
-    this._panTransX = springy(
+    this._panTransX = set(
       panTransX,
-      eq(panState, State.ACTIVE),
-      add(dragDivX, focalTransX),
-      scale,
-      300 // width
+      springy(
+        add(panTransX, focalTransX), // we always want to add focal component to the value as opposed to drag component that we may want to apply friction to
+        gesturesActive,
+        dragDivX,
+        scale,
+        300 // width
+      )
     );
 
     // Y
@@ -225,15 +230,14 @@ class Viewer extends Component {
     );
     this._panTransY = set(
       panTransY,
-      add(panTransY, add(dragDivY, focalTransY))
+      springy(
+        add(panTransY, focalTransY), // we always want to add focal component to the value as opposed to drag component that we may want to apply friction to
+        gesturesActive,
+        dragDivY,
+        scale,
+        300 // height
+      )
     );
-    // this._panTransY = springy(
-    //   panTransY,
-    //   eq(panState, State.ACTIVE),
-    //   add(dragDivY, focalTransY),
-    //   scale,
-    //   300 // height
-    // );
   }
   render() {
     const WIDTH = 300;
