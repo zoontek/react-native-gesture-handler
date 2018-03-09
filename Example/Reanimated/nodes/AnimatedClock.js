@@ -8,8 +8,12 @@ class AnimatedMainClock extends AnimatedValue {
     super(0);
   }
 
+  __onEvaluate() {
+    return +new Date();
+  }
+
   _runFrame = () => {
-    this._updateValue(+new Date());
+    this._updateValue(0);
     if (this.__children.length > 0) {
       this._frameCallback = requestAnimationFrame(this._runFrame);
     }

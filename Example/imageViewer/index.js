@@ -23,6 +23,7 @@ const {
   lessThan,
   spring,
   call,
+  diff,
   block,
   startClock,
   stopClock,
@@ -93,6 +94,12 @@ function rest(value, scale, length) {
   );
 }
 
+function speed(value) {
+  const clock = new Clock();
+  const dt = diff(clock);
+  return cond(lessThan(dt, 1), 0, multiply(1000, divide(diff(value), dt)));
+}
+
 function springy(value, gestureActive, gestureDelta, scale, length) {
   const clock = new Clock();
   const springTo = new Value(0);
@@ -113,8 +120,10 @@ function springy(value, gestureActive, gestureDelta, scale, length) {
     restDisplacementThreshold: 0.001,
   };
 
+  const velocity = speed(value);
+
   return cond(
-    [gestureDelta, gestureActive], // use gestureDelta here to make sure it gets updated even when gesture is inactive
+    [gestureDelta, velocity, gestureActive], // use gestureDelta here to make sure it gets updated even when gesture is inactive
     [
       stopClock(clock),
       add(
@@ -131,14 +140,17 @@ function springy(value, gestureActive, gestureDelta, scale, length) {
       [
         cond(clockRunning(clock), 0, [
           set(springState.finished, 0),
-          // set(springState.velocity, dragVX),
+          set(springState.velocity, velocity),
           set(springState.position, value),
           set(springTo, rest(value, scale, length)),
           startClock(clock),
         ]),
         spring(clock, springTo, springState, springConfig),
-        cond(springState.finished, stopClock(clock)),
-        springState.position,
+        cond(
+          springState.finished,
+          [stopClock(clock), springTo],
+          springState.position
+        ),
       ],
       value
     )
