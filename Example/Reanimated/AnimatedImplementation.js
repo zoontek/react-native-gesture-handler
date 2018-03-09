@@ -15,12 +15,17 @@ import SpringNode from './nodes/SpringNode';
 import AnimatedClock from './nodes/AnimatedClock';
 import AnimatedStartClock from './nodes/AnimatedStartClock';
 import AnimatedStopClock from './nodes/AnimatedStopClock';
+import AnimatedClockTest from './nodes/AnimatedClockTest';
 
 import { adapt } from './utils';
 import createAnimatedComponent from './createAnimatedComponent';
 
 const add = function(a, b) {
   return new AnimatedOp([adapt(a), adapt(b)], ([a, b]) => a + b);
+};
+
+const pow = function(a, b) {
+  return new AnimatedOp([adapt(a), adapt(b)], ([a, b]) => Math.pow(a, b));
 };
 
 const divide = function(a, b) {
@@ -80,15 +85,26 @@ const modulo = function(a, modulus) {
   );
 };
 
+const debug = function(message, value) {
+  return new AnimatedOp([adapt(value)], ([value]) => {
+    console.log(message, value);
+    return value;
+  });
+};
+
 const onChange = function(value, action) {
   return new AnimatedOnChange(adapt(value), adapt(action));
 };
 
 const min = function(a, b) {
+  a = adapt(a);
+  b = adapt(b);
   return cond(lessThan(a, b), a, b);
 };
 
 const max = function(a, b) {
+  a = adapt(a);
+  b = adapt(b);
   return cond(lessThan(a, b), b, a);
 };
 
@@ -121,6 +137,10 @@ const startClock = function(clock) {
 
 const stopClock = function(clock) {
   return new AnimatedStopClock(clock);
+};
+
+const clockRunning = function(clock) {
+  return new AnimatedClockTest(clock);
 };
 
 const _combineCallbacks = function(callback, config) {
@@ -554,10 +574,13 @@ module.exports = {
   min,
   max,
   diff,
+  pow,
   defined,
   acc,
   startClock,
   stopClock,
+  clockRunning,
+  debug,
   Clock: AnimatedClock,
 
   /**

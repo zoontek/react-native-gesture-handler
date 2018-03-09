@@ -17,7 +17,7 @@ export default class AnimatedCond extends AnimatedWithInput {
     if (val(this._condition)) {
       return val(this._ifBlock);
     } else {
-      return this._elseBlock ? val(this._elseBlock) : undefined;
+      return this._elseBlock !== undefined ? val(this._elseBlock) : undefined;
     }
   }
 }

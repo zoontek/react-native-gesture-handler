@@ -3,22 +3,23 @@ const UPDATED_NODES = [];
 let loopID = 1;
 let propUpdatesEnqueued = null;
 
-function findAndUpdateNodes(node) {
-  if (typeof node.update === 'function') {
-    node.update();
-  } else {
-    node.__getChildren().forEach(findAndUpdateNodes);
-  }
-}
-
 function runPropUpdates() {
   const visitedNodes = new Set();
+  const findAndUpdateNodes = node => {
+    if (visitedNodes.has(node)) {
+      return;
+    } else {
+      visitedNodes.add(node);
+    }
+    if (typeof node.update === 'function') {
+      node.update();
+    } else {
+      node.__getChildren().forEach(findAndUpdateNodes);
+    }
+  };
   for (let i = 0; i < UPDATED_NODES.length; i++) {
     const node = UPDATED_NODES[i];
-    if (!visitedNodes.has(node)) {
-      visitedNodes.add(node);
-      findAndUpdateNodes(node);
-    }
+    findAndUpdateNodes(node);
   }
   UPDATED_NODES.length = 0; // clear array
   propUpdatesEnqueued = null;

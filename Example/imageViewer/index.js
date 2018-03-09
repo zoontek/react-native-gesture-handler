@@ -12,14 +12,21 @@ const {
   set,
   cond,
   eq,
+  or,
   add,
+  pow,
+  min,
+  max,
+  debug,
   multiply,
   divide,
   lessThan,
   spring,
   call,
+  block,
   startClock,
   stopClock,
+  clockRunning,
   Value,
   Clock,
   event,
@@ -51,6 +58,93 @@ function makeScaleDiv(state, scale) {
     eq(state, State.ACTIVE),
     [set(tmp, divide(scale, prev)), set(prev, scale), tmp],
     set(prev, 1)
+  );
+}
+
+// returns linear friction coeff. When `value` is 0 coeff is 1 (no friction), then
+// it grows linearly until it reaches `MAX_FRICTION` when `value` is equal
+// to `MAX_VALUE`
+function friction(value) {
+  const MAX_FRICTION = 5;
+  const MAX_VALUE = 100;
+  return max(
+    1,
+    min(MAX_FRICTION, add(1, multiply(value, (MAX_FRICTION - 1) / MAX_VALUE)))
+  );
+}
+
+// calculates how far is the image view translated beyond the visible bounds.
+// E.g. when the image is at the left edge and start dragging right.
+function overLimit(value, scale, length) {
+  const rightEdge = add(value, multiply(length, scale));
+  return cond(
+    lessThan(0, value),
+    value,
+    max(0, add(length, multiply(-1, rightEdge)))
+  );
+}
+
+function rest(value, scale, length) {
+  const rightEdge = add(value, multiply(length, scale));
+  return cond(
+    lessThan(0, value),
+    0,
+    add(length, multiply(-1, multiply(scale, length)))
+  );
+}
+
+function springy(value, gestureActive, gestureDelta, scale, length) {
+  const clock = new Clock();
+  const springTo = new Value(0);
+
+  const springState = {
+    finished: new Value(0),
+    velocity: new Value(0),
+    position: new Value(0),
+    time: new Value(0),
+  };
+
+  const springConfig = {
+    damping: 7,
+    mass: 1,
+    stiffness: 121.6,
+    overshootClamping: false,
+    restSpeedThreshold: 0.001,
+    restDisplacementThreshold: 0.001,
+  };
+
+  return cond(
+    [gestureDelta, gestureActive], // use gestureDelta here to make sure it gets updated even when gesture is inactive
+    [
+      stopClock(clock),
+      set(
+        value,
+        add(
+          value,
+          divide(
+            gestureDelta,
+            friction(overLimit(add(value, gestureDelta), scale, length))
+          )
+        )
+      ),
+    ],
+    cond(
+      or(clockRunning(clock), lessThan(0, overLimit(value, scale, length))),
+      // when spring clock is running or we are "over limit" we want to animate to
+      [
+        cond(clockRunning(clock), 0, [
+          set(springState.finished, 0),
+          // set(springState.velocity, dragVX),
+          set(springState.position, value),
+          set(springTo, rest(value, scale, length)),
+          startClock(clock),
+        ]),
+        spring(clock, springTo, springState, springConfig),
+        cond(springState.finished, stopClock(clock)),
+        set(value, springState.position),
+      ],
+      value
+    )
   );
 }
 
@@ -114,9 +208,12 @@ class Viewer extends Component {
     );
     // We update translateX with the component that comes from the scaling focal
     // point (`focalTransX`) and component that comes from panning (`dragDivX`).
-    this._panTransX = set(
+    this._panTransX = springy(
       panTransX,
-      add(panTransX, add(dragDivX, focalTransX))
+      eq(panState, State.ACTIVE),
+      add(dragDivX, focalTransX),
+      scale,
+      300 // width
     );
 
     // Y
@@ -130,6 +227,13 @@ class Viewer extends Component {
       panTransY,
       add(panTransY, add(dragDivY, focalTransY))
     );
+    // this._panTransY = springy(
+    //   panTransY,
+    //   eq(panState, State.ACTIVE),
+    //   add(dragDivY, focalTransY),
+    //   scale,
+    //   300 // height
+    // );
   }
   render() {
     const WIDTH = 300;

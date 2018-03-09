@@ -70,6 +70,10 @@ export default class AnimatedClock extends AnimatedValue {
     }
     this._started = false;
   }
+
+  isStarted() {
+    return this._started;
+  }
 }
 
 const clock = mainClock;
