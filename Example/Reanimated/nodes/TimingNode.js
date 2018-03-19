@@ -1,7 +1,7 @@
 import AnimatedWithInput from './AnimatedWithInput';
-import { val } from '../utils';
+import { val, proxyAnimatedObject } from '../utils';
 
-function timing(now, state, config, easing) {
+function timing(now, state, config) {
   const time = state.time || now;
   const dt = now - time;
   const frameTime = state.frameTime;
@@ -11,8 +11,8 @@ function timing(now, state, config, easing) {
     state.position = config.toValue;
     state.finished = 1;
   } else {
-    const lastProgress = easing(frameTime / config.duration);
-    const dp = easing((frameTime + dt) / config.duration) - lastProgress;
+    const lastProgress = config.easing(frameTime / config.duration);
+    const dp = config.easing((frameTime + dt) / config.duration) - lastProgress;
     const remaining = config.toValue - position;
     state.position = position + remaining * dp / (1 - lastProgress);
   }
@@ -20,18 +20,17 @@ function timing(now, state, config, easing) {
   state.time = now;
 }
 
-export default class TimingStep extends AnimatedWithInput {
+export default class TimingNode extends AnimatedWithInput {
   _state;
   _config;
   _easing;
   _clock;
 
-  constructor(clock, state, config, easing) {
+  constructor(clock, state, config) {
     super([clock]);
     this._clock = clock;
-    this._state = state;
-    this._config = config;
-    this._easing = easing;
+    this._state = proxyAnimatedObject(state);
+    this._config = proxyAnimatedObject(config);
   }
 
   update() {
@@ -39,6 +38,6 @@ export default class TimingStep extends AnimatedWithInput {
   }
 
   __onEvaluate() {
-    timing(val(this._clock), this._state, this._config, this._easing);
+    timing(val(this._clock), this._state, this._config);
   }
 }

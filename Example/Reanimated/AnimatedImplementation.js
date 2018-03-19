@@ -12,6 +12,8 @@ import DecayAnimation from './animations/DecayAnimation';
 import SpringAnimation from './animations/SpringAnimation';
 import TimingAnimation from './animations/TimingAnimation';
 import SpringNode from './nodes/SpringNode';
+import DecayNode from './nodes/DecayNode';
+import TimingNode from './nodes/TimingNode';
 import AnimatedClock from './nodes/AnimatedClock';
 import AnimatedStartClock from './nodes/AnimatedStartClock';
 import AnimatedStopClock from './nodes/AnimatedStopClock';
@@ -158,12 +160,12 @@ const maybeVectorAnim = function(value, config, anim) {
   return null;
 };
 
-const spring = function(clock, toValue, springState, springConfig) {
-  if (springState !== undefined) {
-    return new SpringNode(clock, adapt(toValue), springState, springConfig);
+const spring = function(clock, springState, springConfig) {
+  if (springConfig !== undefined) {
+    return new SpringNode(clock, springState, springConfig);
   }
   const value = clock; // for compatibility with Animated lib
-  const config = toValue;
+  const config = timingState;
   const start = function(animatedValue, configuration, callback) {
     callback = _combineCallbacks(callback, configuration);
     const singleValue = animatedValue;
@@ -207,7 +209,12 @@ const spring = function(clock, toValue, springState, springConfig) {
   };
 };
 
-const timing = function(value, config) {
+const timing = function(clock, timingState, timingConfig) {
+  if (timingConfig !== undefined) {
+    return new TimingNode(clock, timingState, timingConfig);
+  }
+  const value = clock; // for compatibility with Animated lib
+  const config = timingState;
   const start = function(animatedValue, configuration, callback) {
     callback = _combineCallbacks(callback, configuration);
     const singleValue = animatedValue;
@@ -254,7 +261,12 @@ const timing = function(value, config) {
   );
 };
 
-const decay = function(value, config) {
+const decay = function(clock, decayState, decayConfig) {
+  if (decayConfig !== undefined) {
+    return new DecayNode(clock, decayState, decayConfig);
+  }
+  const value = clock; // for compatibility with Animated lib
+  const config = toValue;
   const start = function(animatedValue, configuration, callback) {
     callback = _combineCallbacks(callback, configuration);
     const singleValue = animatedValue;

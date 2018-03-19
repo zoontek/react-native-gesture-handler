@@ -3,10 +3,11 @@ import { proxyAnimatedObject, val } from '../utils';
 
 const MAX_STEPS_MS = 64;
 
-function spring(now, toValue, state, config) {
+function spring(now, state, config) {
   const lastTimeMs = state.time || now;
   const lastPosition = state.position;
   const lastVelocity = state.velocity;
+  const toValue = config.toValue;
 
   const deltaTimeMs = Math.min(now - lastTimeMs, MAX_STEPS_MS);
 
@@ -23,7 +24,6 @@ function spring(now, toValue, state, config) {
   let position = 0.0;
   let velocity = 0.0;
   const t = deltaTimeMs / 1000.0; // in seconds
-  // throw new Error('ddd');
   if (zeta < 1) {
     // Under damped
     const envelope = Math.exp(-zeta * omega0 * t);
@@ -86,14 +86,12 @@ export default class SpringNode extends AnimatedWithInput {
   _clock;
   _state;
   _config;
-  _toValue;
 
-  constructor(clock, toValue, state, config) {
+  constructor(clock, state, config) {
     super([clock]);
     this._clock = clock;
     this._state = proxyAnimatedObject(state);
-    this._toValue = toValue;
-    this._config = config;
+    this._config = proxyAnimatedObject(config);
   }
 
   update() {
@@ -101,6 +99,6 @@ export default class SpringNode extends AnimatedWithInput {
   }
 
   __onEvaluate() {
-    spring(val(this._clock), val(this._toValue), this._state, this._config);
+    spring(val(this._clock), this._state, this._config);
   }
 }

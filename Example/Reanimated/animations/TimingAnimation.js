@@ -1,12 +1,11 @@
 import AnimatedValue from '../nodes/AnimatedValue';
-import TimingStep from '../nodes/TimingStep';
+import TimingNode from '../nodes/TimingNode';
 import Animation from './Animation';
 
 import { clock } from '../nodes/AnimatedClock';
 import AnimatedOnChange from '../nodes/AnimatedOnChange';
 import AnimatedDetach from '../nodes/AnimatedDetach';
 
-import { proxyAnimatedObject } from '../utils';
 import { shouldUseNativeDriver } from '../NativeAnimatedHelper';
 
 let _easeInOut;
@@ -47,19 +46,20 @@ export default class TimingAnimation extends Animation {
 
   start(value) {
     this._finished = new AnimatedValue(0);
-    const state = proxyAnimatedObject({
+    const state = {
       finished: this._finished,
       position: value,
       time: 0,
       frameTime: 0,
-    });
+    };
 
-    const config = proxyAnimatedObject({
+    const config = {
       duration: this._duration,
       toValue: this._toValue,
-    });
+      easing: this._easing,
+    };
 
-    const step = new TimingStep(clock, state, config, this._easing);
+    const step = new TimingNode(clock, state, config);
     new AnimatedOnChange(this._finished, new AnimatedDetach(step)).__attach();
     step.__attach();
   }
