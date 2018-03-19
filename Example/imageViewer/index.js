@@ -109,7 +109,7 @@ function scaleFriction(value, delta) {
   );
   return cond(
     lessThan(0, howFar),
-    multiply(value, add(1, divide(add(delta, -1), debug('fric', friction)))),
+    multiply(value, add(1, divide(add(delta, -1), friction))),
     res
   );
 }
@@ -231,6 +231,7 @@ function bouncy(value, gesture, gestureActive, scale, length) {
             set(decayState.time, 0),
             startClock(decayClock),
           ]),
+          set(decayState.position, value),
           decay(decayClock, decayState, decayConfig),
           cond(decayState.finished, stopClock(decayClock)),
           decayState.position,
