@@ -45,10 +45,6 @@ export default class DecayNode extends AnimatedWithInput {
     this._config = config;
   }
 
-  update() {
-    val(this);
-  }
-
   __onEvaluate() {
     decay(val(this._clock), this._state, this._config);
   }

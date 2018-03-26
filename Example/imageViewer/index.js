@@ -42,6 +42,16 @@ function scaleDiff(value) {
   return [set(tmp, divide(value, prev)), set(prev, value), tmp];
 }
 
+function dragDiff(value, updating) {
+  const tmp = new Value(0);
+  const prev = new Value(0);
+  return cond(
+    updating,
+    [set(tmp, add(value, multiply(-1, prev))), set(prev, value), tmp],
+    set(prev, 0)
+  );
+}
+
 // returns linear friction coeff. When `value` is 0 coeff is 1 (no friction), then
 // it grows linearly until it reaches `MAX_FRICTION` when `value` is equal
 // to `MAX_VALUE`
@@ -51,25 +61,6 @@ function friction(value) {
   return max(
     1,
     min(MAX_FRICTION, add(1, multiply(value, (MAX_FRICTION - 1) / MAX_VALUE)))
-  );
-}
-
-// calculates how far is the image view translated beyond the visible bounds.
-// E.g. when the image is at the left edge and start dragging right.
-function overLimit(value, scale, length) {
-  const rightEdge = add(value, multiply(length, scale));
-  return cond(
-    lessThan(0, value),
-    value,
-    max(0, add(length, multiply(-1, rightEdge)))
-  );
-}
-
-function rest(value, scale, length) {
-  return cond(
-    lessThan(0, value),
-    0,
-    add(length, multiply(-1, multiply(scale, length)))
   );
 }
 
@@ -160,7 +151,14 @@ function abs(a) {
   return cond(lessThan(a, 0), multiply(-1, a), a);
 }
 
-function bouncy(value, gesture, gestureActive, scale, length) {
+function bouncy(
+  value,
+  gestureDiv,
+  gestureActive,
+  lowerBound,
+  upperBound,
+  friction
+) {
   const timingClock = new Clock();
   const decayClock = new Clock();
 
@@ -169,12 +167,6 @@ function bouncy(value, gesture, gestureActive, scale, length) {
     position: new Value(0),
     frameTime: new Value(0),
     time: new Value(0),
-  };
-
-  const timingConfig = {
-    toValue: new Value(0),
-    duration: 300,
-    easing: Easing.inOut(Easing.cubic),
   };
 
   const decayState = {
@@ -188,24 +180,37 @@ function bouncy(value, gesture, gestureActive, scale, length) {
     deceleration: 0.99,
   };
 
-  const delta = diff(gesture);
   const velocity = speed(value);
 
+  // did value go beyond the limits (lower, upper)
+  const isOutOfBounds = or(
+    lessThan(value, lowerBound),
+    lessThan(upperBound, value)
+  );
+  // position to snap to (upper or lower is beyond or the current value elsewhere)
+  const rest = cond(
+    lessThan(value, lowerBound),
+    lowerBound,
+    cond(lessThan(upperBound, value), upperBound, value)
+  );
+  // how much the value exceeds the bounds, this is used to calculate friction
+  const outOfBounds = abs(add(rest, multiply(-1, value)));
+
+  const timingConfig = {
+    toValue: rest,
+    duration: 300,
+    easing: Easing.inOut(Easing.cubic),
+  };
+
   return cond(
-    [delta, velocity, gestureActive], // use delta here to make sure it gets updated even when gesture is inactive
+    [gestureDiv, velocity, gestureActive],
     [
       stopClock(timingClock),
       stopClock(decayClock),
-      add(
-        value,
-        divide(delta, friction(overLimit(add(value, delta), scale, length)))
-      ),
+      add(value, divide(gestureDiv, friction(outOfBounds))),
     ],
     cond(
-      or(
-        clockRunning(timingClock),
-        lessThan(0, overLimit(value, scale, length))
-      ),
+      or(clockRunning(timingClock), isOutOfBounds),
       // when timing clock is running or we are "over limit" we want to animate to
       [
         cond(clockRunning(timingClock), 0, [
@@ -213,10 +218,10 @@ function bouncy(value, gesture, gestureActive, scale, length) {
           set(timingState.position, value),
           set(timingState.frameTime, 0),
           set(timingState.time, 0),
-          set(timingConfig.toValue, rest(value, scale, length)),
           startClock(timingClock),
         ]),
         stopClock(decayClock),
+        set(timingState.position, value),
         timing(timingClock, timingState, timingConfig),
         cond(timingState.finished, stopClock(timingClock)),
         timingState.position,
@@ -241,6 +246,78 @@ function bouncy(value, gesture, gestureActive, scale, length) {
     )
   );
 }
+
+/**
+ * This method creates a translateX component that comes from adjusting the view
+ * to scale around the pinch gesture focal point. We make sure that the location
+ * on the image that is under gesture focal point stays in the same place before
+ * and after zooming. For X axis the location is expressed by `pinchFocalX - panTransX`,
+ * because focalX provided by the event is relative to the image view and we also
+ * take into account that the image might have already been translated by `panTransX`.
+ * Finally to calculate how the location would translate after scaling in a given
+ * frame we multiply by `scaleDiv` which represents a change in scale for the
+ * current frame. The whole formula goes as follows:
+ * focalTransX = (pinchFocalX - panTransX) - (pinchFocalX - panTransX) * scaleDiv
+ */
+function focalDisplacement(gestureActive, position, focalPoint, scale) {
+  const displacement = new Value(0);
+  const scaleDiv = scaleDiff(scale);
+  const focalCenter = new Value(0);
+  const realPosition = add(
+    displacement,
+    cond(gestureActive, set(focalCenter, position), focalCenter)
+  );
+  return set(
+    displacement,
+    add(
+      displacement,
+      multiply(add(realPosition, multiply(-1, focalPoint)), add(scaleDiv, -1))
+    )
+  );
+}
+
+/**
+ * This method calculates upper and lower bounds for the frame where image can
+ * be panned around. The bounds are "dynamic" because they depend on how the
+ * image is scaled and displaced by zooming in different areas of the image.
+ * E.g. when we pinch to zoom close to the right edge the image will get displaced
+ * to the left way further than when we pinch in the middle.
+ *
+ * On top of that when the scale goes below 1 (that is the image takes less space
+ * than the view has) we pretend as if the scale was still 1. This is needed for
+ * the "bounce back" animation to behave correctly, because if we were keep
+ * adding displacement when the scale goes below 1 and when we stop pinching:
+ *  a) there would be a conflict between constraints for the upper and lower
+ *     bounds as they both cannot be satisfied in this circumstances
+ *  b) because of the above we would try to animate translation of the image but
+ *     that would also conflict with the scale animation that would bounce back
+ *     to one.
+ *
+ * The upper bound for translation when there is no scaling is 0 and lower bound
+ * is the size of the image. Since there could be a displacement that comes from
+ * pinch (focal displacement) for the upper bound instead of 0 we take -displacement
+ * and for the lower bound we just add the size. Finally since there could be
+ * scaling involved the image can be larger than size by (scale * (size - 1))
+ * and so we need to subtract this from the lower bound.
+ *
+ * Each time we reference "scale" here we use "boundScale" which means that we
+ * use the original scale as long as its greater than 1 and we take 1 otherwise.
+ */
+function createDragBounds(gestureActive, position, focalPoint, scale, size) {
+  const boundScale = max(1, scale);
+  const displacementWithBoundScale = focalDisplacement(
+    gestureActive,
+    position,
+    focalPoint,
+    boundScale
+  );
+  const upperBound = multiply(-1, displacementWithBoundScale);
+  const lowerBound = add(upperBound, add(size, multiply(boundScale, -size)));
+  return [upperBound, lowerBound];
+}
+
+const WIDTH = 300;
+const HEIGHT = 300;
 
 class Viewer extends Component {
   constructor(props) {
@@ -267,7 +344,6 @@ class Viewer extends Component {
     const scale = new Value(1);
     const pinchActive = eq(pinchState, State.ACTIVE);
     this._scale = set(scale, bouncyPinch(scale, pinchScale, pinchActive));
-    const scaleDiv = scaleDiff(this._scale);
 
     // PAN
     const dragX = new Value(0);
@@ -283,61 +359,62 @@ class Viewer extends Component {
       },
     ]);
 
-    const gesturesActive = or(
-      eq(panState, State.ACTIVE),
-      eq(pinchState, State.ACTIVE)
-    );
+    const panActive = eq(panState, State.ACTIVE);
+    const panFriction = value => friction(value);
 
     // X
     const panTransX = new Value(0);
-    // translateX component that comes from adjusting the view to scale around
-    // the pinch gesture focal point. We make sure that the location on the image
-    // that is under gesture focal point stays in the same place before and after
-    // zooming. The location is expressed by `pinchFocalX - panTransX`, because
-    // focalX provided by the event is relative to the image view and we also
-    // take to account the image might have already been translated by `panTransX`.
-    // Finally to calculate how the location would translate after scaling we just
-    // multiply by `scaleDiv` so the whole formula goes as follows:
-    // focalTransX = (pinchFocalX - panTransX) - (pinchFocalX - panTransX) * scaleDiv
-    // which can be expressed as:
-    // focalTransX = (panTransX - pinchFocalX) * (scaleDiv - 1)
-    const focalTransX = multiply(
-      add(panTransX, multiply(-1, pinchFocalX)),
-      add(scaleDiv, -1)
+    this._focalDisplacementX = debug(
+      'focal',
+      focalDisplacement(pinchActive, panTransX, pinchFocalX, this._scale)
     );
-    // We update translateX with the component that comes from the scaling focal
-    // point (`focalTransX`) and component that comes from panning (`dragDivX`).
+    const [panUpX, panLowX] = createDragBounds(
+      pinchActive,
+      panTransX,
+      pinchFocalX,
+      this._scale,
+      WIDTH
+    );
     this._panTransX = set(
       panTransX,
       bouncy(
-        add(panTransX, focalTransX), // we always want to add focal component to the value as opposed to drag component that we may want to apply friction to
-        dragX,
-        gesturesActive,
-        scale,
-        300 // width
+        panTransX,
+        dragDiff(dragX, panActive),
+        panActive,
+        panLowX,
+        panUpX,
+        panFriction
       )
     );
 
     // Y
-    const panTransY = new Value(0);
-    const focalTransY = multiply(
-      add(panTransY, multiply(-1, pinchFocalY)),
-      add(scaleDiv, -1)
-    );
-    this._panTransY = set(
-      panTransY,
-      bouncy(
-        add(panTransY, focalTransY), // we always want to add focal component to the value as opposed to drag component that we may want to apply friction to
-        dragY,
-        gesturesActive,
-        scale,
-        300 // height
-      )
-    );
+    // const panTransY = new Value(0);
+    // this._focalDisplacementY = focalDisplacement(
+    //   panTransY,
+    //   pinchFocalY,
+    //   this._scale
+    // );
+    // const [panUpY, panLowY] = createDragBounds(
+    //   panTransY,
+    //   pinchFocalY,
+    //   this._scale,
+    //   WIDTH
+    // );
+    // this._panTransY = set(
+    //   panTransY,
+    //   bouncy(
+    //     panTransY,
+    //     dragDiff(dragY, panActive),
+    //     gesturesActive,
+    //     panLowY,
+    //     panUpY,
+    //     panFriction
+    //   )
+    // );
+    this._focalDisplacementY = new Value(0);
+    this._panTransY = new Value(0);
   }
   render() {
-    const WIDTH = 300;
-    const HEIGHT = 300;
     // The below two animated values makes it so that scale appears to be done
     // from the top left corner of the image view instead of its center. This
     // is required for the "scale focal point" math to work correctly
@@ -362,6 +439,8 @@ class Viewer extends Component {
                   transform: [
                     { translateX: this._panTransX },
                     { translateY: this._panTransY },
+                    { translateX: this._focalDisplacementX },
+                    { translateY: this._focalDisplacementY },
                     { translateX: scaleTopLeftFixX },
                     { translateY: scaleTopLeftFixY },
                     { scale: this._scale },

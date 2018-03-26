@@ -11,10 +11,13 @@ function timing(now, state, config) {
     state.position = config.toValue;
     state.finished = 1;
   } else {
-    const lastProgress = config.easing(frameTime / config.duration);
-    const dp = config.easing((frameTime + dt) / config.duration) - lastProgress;
-    const remaining = config.toValue - position;
-    state.position = position + remaining * dp / (1 - lastProgress);
+    const progress = config.easing(frameTime / config.duration);
+    const distanceLeft = config.toValue - position;
+    const fullDistance = distanceLeft / (1 - progress);
+    const startPosition = config.toValue - fullDistance;
+    const nextProgress = config.easing((frameTime + dt) / config.duration);
+    const nextPosition = startPosition + fullDistance * nextProgress;
+    state.position = nextPosition;
   }
   state.frameTime = frameTime + dt;
   state.time = now;
@@ -31,10 +34,6 @@ export default class TimingNode extends AnimatedWithInput {
     this._clock = clock;
     this._state = proxyAnimatedObject(state);
     this._config = proxyAnimatedObject(config);
-  }
-
-  update() {
-    val(this);
   }
 
   __onEvaluate() {

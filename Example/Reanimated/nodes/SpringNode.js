@@ -94,10 +94,6 @@ export default class SpringNode extends AnimatedWithInput {
     this._config = proxyAnimatedObject(config);
   }
 
-  update() {
-    val(this);
-  }
-
   __onEvaluate() {
     spring(val(this._clock), this._state, this._config);
   }
