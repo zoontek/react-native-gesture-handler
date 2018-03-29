@@ -26,6 +26,10 @@ const add = function(a, b) {
   return new AnimatedOp([adapt(a), adapt(b)], ([a, b]) => a + b);
 };
 
+const sub = function(a, b) {
+  return new AnimatedOp([adapt(a), adapt(b)], ([a, b]) => a - b);
+};
+
 const pow = function(a, b) {
   return new AnimatedOp([adapt(a), adapt(b)], ([a, b]) => Math.pow(a, b));
 };
@@ -573,7 +577,7 @@ module.exports = {
    * See http://facebook.github.io/react-native/docs/animated.html#add
    */
   add,
-
+  sub,
   cond,
   block,
   set,

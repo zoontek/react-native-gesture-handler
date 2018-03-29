@@ -15,6 +15,7 @@ const {
   eq,
   or,
   add,
+  sub,
   pow,
   min,
   max,
@@ -27,6 +28,7 @@ const {
   timing,
   call,
   diff,
+  acc,
   block,
   startClock,
   stopClock,
@@ -35,6 +37,10 @@ const {
   Clock,
   event,
 } = Animated;
+
+function not(value) {
+  return cond(value, 0, 1);
+}
 
 function scaleDiff(value) {
   const tmp = new Value(1);
@@ -47,7 +53,7 @@ function dragDiff(value, updating) {
   const prev = new Value(0);
   return cond(
     updating,
-    [set(tmp, add(value, multiply(-1, prev))), set(prev, value), tmp],
+    [set(tmp, sub(value, prev)), set(prev, value), tmp],
     set(prev, 0)
   );
 }
@@ -73,14 +79,6 @@ function speed(value) {
 const MIN_SCALE = 1;
 const MAX_SCALE = 2;
 
-function scaleOverLimit(value) {
-  return cond(
-    lessThan(value, MIN_SCALE),
-    add(MIN_SCALE, multiply(-1, value)),
-    cond(lessThan(MAX_SCALE, value), add(value, -MAX_SCALE), 0)
-  );
-}
-
 function scaleRest(value) {
   return cond(
     lessThan(value, MIN_SCALE),
@@ -89,11 +87,11 @@ function scaleRest(value) {
   );
 }
 
-function scaleFriction(value, delta) {
+function scaleFriction(value, rest, delta) {
   const MAX_FRICTION = 20;
   const MAX_VALUE = 0.5;
   const res = multiply(value, delta);
-  const howFar = scaleOverLimit(res);
+  const howFar = abs(sub(rest, value));
   const friction = max(
     1,
     min(MAX_FRICTION, add(1, multiply(howFar, (MAX_FRICTION - 1) / MAX_VALUE)))
@@ -105,42 +103,106 @@ function scaleFriction(value, delta) {
   );
 }
 
-function bouncyPinch(value, gesture, gestureActive) {
-  const clock = new Clock();
-
-  const timingState = {
+function runTiming(clock, value, dest, startStopClock = true) {
+  const state = {
     finished: new Value(0),
     position: new Value(0),
     frameTime: new Value(0),
     time: new Value(0),
   };
 
-  const timingConfig = {
+  const config = {
     toValue: new Value(0),
     duration: 300,
     easing: Easing.inOut(Easing.cubic),
   };
 
+  return block([
+    cond(clockRunning(clock), 0, [
+      set(state.finished, 0),
+      set(state.frameTime, 0),
+      set(state.time, 0),
+      set(state.position, value),
+      set(config.toValue, dest),
+      startStopClock && startClock(clock),
+    ]),
+    timing(clock, state, config),
+    startStopClock && cond(state.finished, stopClock(clock)),
+    state.position,
+  ]);
+}
+
+function runDecay(clock, value, velocity) {
+  const state = {
+    finished: new Value(0),
+    velocity: new Value(0),
+    position: new Value(0),
+    time: new Value(0),
+  };
+
+  const config = { deceleration: 0.99 };
+
+  return block([
+    cond(clockRunning(clock), 0, [
+      set(state.finished, 0),
+      set(state.velocity, velocity),
+      set(state.position, value),
+      set(state.time, 0),
+      startClock(clock),
+    ]),
+    set(state.position, value),
+    decay(clock, state, config),
+    cond(state.finished, stopClock(clock)),
+    state.position,
+  ]);
+}
+
+function bouncyPinch(
+  value,
+  gesture,
+  gestureActive,
+  focalX,
+  displacementX,
+  focalY,
+  displacementY
+) {
+  const clock = new Clock();
+
   const delta = scaleDiff(gesture);
+  const rest = scaleRest(value);
+  const focalXRest = cond(
+    lessThan(value, 1),
+    0,
+    sub(displacementX, multiply(focalX, add(-1, divide(rest, value))))
+  );
+  const focalYRest = cond(
+    lessThan(value, 1),
+    0,
+    sub(displacementY, multiply(focalY, add(-1, divide(rest, value))))
+  );
+  const nextScale = new Value(1);
 
   return cond(
-    [delta, gestureActive], // use gestureDelta here to make sure it gets updated even when gesture is inactive
-    [stopClock(clock), scaleFriction(value, delta)],
+    [delta, gestureActive],
+    [
+      stopClock(clock),
+      set(nextScale, scaleFriction(value, rest, delta)),
+      set(
+        displacementX,
+        sub(displacementX, multiply(focalX, add(-1, divide(nextScale, value))))
+      ),
+      set(
+        displacementY,
+        sub(displacementY, multiply(focalY, add(-1, divide(nextScale, value))))
+      ),
+      nextScale,
+    ],
     cond(
-      or(clockRunning(clock), scaleOverLimit(value)),
-      // when spring clock is running or we are "over limit" we want to animate to
+      or(clockRunning(clock), not(eq(rest, value))),
       [
-        cond(clockRunning(clock), 0, [
-          set(timingState.finished, 0),
-          set(timingState.frameTime, 0),
-          set(timingState.time, 0),
-          set(timingState.position, value),
-          set(timingConfig.toValue, scaleRest(value)),
-          startClock(clock),
-        ]),
-        timing(clock, timingState, timingConfig),
-        cond(timingState.finished, stopClock(clock)),
-        timingState.position,
+        set(displacementX, runTiming(clock, displacementX, focalXRest, false)),
+        set(displacementY, runTiming(clock, displacementY, focalYRest, false)),
+        runTiming(clock, value, rest),
       ],
       value
     )
@@ -162,24 +224,6 @@ function bouncy(
   const timingClock = new Clock();
   const decayClock = new Clock();
 
-  const timingState = {
-    finished: new Value(0),
-    position: new Value(0),
-    frameTime: new Value(0),
-    time: new Value(0),
-  };
-
-  const decayState = {
-    finished: new Value(0),
-    velocity: new Value(0),
-    position: new Value(0),
-    time: new Value(0),
-  };
-
-  const decayConfig = {
-    deceleration: 0.99,
-  };
-
   const velocity = speed(value);
 
   // did value go beyond the limits (lower, upper)
@@ -194,13 +238,7 @@ function bouncy(
     cond(lessThan(upperBound, value), upperBound, value)
   );
   // how much the value exceeds the bounds, this is used to calculate friction
-  const outOfBounds = abs(add(rest, multiply(-1, value)));
-
-  const timingConfig = {
-    toValue: rest,
-    duration: 300,
-    easing: Easing.inOut(Easing.cubic),
-  };
+  const outOfBounds = abs(sub(rest, value));
 
   return cond(
     [gestureDiv, velocity, gestureActive],
@@ -211,109 +249,14 @@ function bouncy(
     ],
     cond(
       or(clockRunning(timingClock), isOutOfBounds),
-      // when timing clock is running or we are "over limit" we want to animate to
-      [
-        cond(clockRunning(timingClock), 0, [
-          set(timingState.finished, 0),
-          set(timingState.position, value),
-          set(timingState.frameTime, 0),
-          set(timingState.time, 0),
-          startClock(timingClock),
-        ]),
-        stopClock(decayClock),
-        set(timingState.position, value),
-        timing(timingClock, timingState, timingConfig),
-        cond(timingState.finished, stopClock(timingClock)),
-        timingState.position,
-      ],
+      [stopClock(decayClock), runTiming(timingClock, value, rest)],
       cond(
         or(clockRunning(decayClock), lessThan(5, abs(velocity))),
-        [
-          cond(clockRunning(decayClock), 0, [
-            set(decayState.finished, 0),
-            set(decayState.velocity, velocity),
-            set(decayState.position, value),
-            set(decayState.time, 0),
-            startClock(decayClock),
-          ]),
-          set(decayState.position, value),
-          decay(decayClock, decayState, decayConfig),
-          cond(decayState.finished, stopClock(decayClock)),
-          decayState.position,
-        ],
+        runDecay(decayClock, value, velocity),
         value
       )
     )
   );
-}
-
-/**
- * This method creates a translateX component that comes from adjusting the view
- * to scale around the pinch gesture focal point. We make sure that the location
- * on the image that is under gesture focal point stays in the same place before
- * and after zooming. For X axis the location is expressed by `pinchFocalX - panTransX`,
- * because focalX provided by the event is relative to the image view and we also
- * take into account that the image might have already been translated by `panTransX`.
- * Finally to calculate how the location would translate after scaling in a given
- * frame we multiply by `scaleDiv` which represents a change in scale for the
- * current frame. The whole formula goes as follows:
- * focalTransX = (pinchFocalX - panTransX) - (pinchFocalX - panTransX) * scaleDiv
- */
-function focalDisplacement(gestureActive, position, focalPoint, scale) {
-  const displacement = new Value(0);
-  const scaleDiv = scaleDiff(scale);
-  const focalCenter = new Value(0);
-  const realPosition = add(
-    displacement,
-    cond(gestureActive, set(focalCenter, position), focalCenter)
-  );
-  return set(
-    displacement,
-    add(
-      displacement,
-      multiply(add(realPosition, multiply(-1, focalPoint)), add(scaleDiv, -1))
-    )
-  );
-}
-
-/**
- * This method calculates upper and lower bounds for the frame where image can
- * be panned around. The bounds are "dynamic" because they depend on how the
- * image is scaled and displaced by zooming in different areas of the image.
- * E.g. when we pinch to zoom close to the right edge the image will get displaced
- * to the left way further than when we pinch in the middle.
- *
- * On top of that when the scale goes below 1 (that is the image takes less space
- * than the view has) we pretend as if the scale was still 1. This is needed for
- * the "bounce back" animation to behave correctly, because if we were keep
- * adding displacement when the scale goes below 1 and when we stop pinching:
- *  a) there would be a conflict between constraints for the upper and lower
- *     bounds as they both cannot be satisfied in this circumstances
- *  b) because of the above we would try to animate translation of the image but
- *     that would also conflict with the scale animation that would bounce back
- *     to one.
- *
- * The upper bound for translation when there is no scaling is 0 and lower bound
- * is the size of the image. Since there could be a displacement that comes from
- * pinch (focal displacement) for the upper bound instead of 0 we take -displacement
- * and for the lower bound we just add the size. Finally since there could be
- * scaling involved the image can be larger than size by (scale * (size - 1))
- * and so we need to subtract this from the lower bound.
- *
- * Each time we reference "scale" here we use "boundScale" which means that we
- * use the original scale as long as its greater than 1 and we take 1 otherwise.
- */
-function createDragBounds(gestureActive, position, focalPoint, scale, size) {
-  const boundScale = max(1, scale);
-  const displacementWithBoundScale = focalDisplacement(
-    gestureActive,
-    position,
-    focalPoint,
-    boundScale
-  );
-  const upperBound = multiply(-1, displacementWithBoundScale);
-  const lowerBound = add(upperBound, add(size, multiply(boundScale, -size)));
-  return [upperBound, lowerBound];
 }
 
 const WIDTH = 300;
@@ -322,6 +265,10 @@ const HEIGHT = 300;
 class Viewer extends Component {
   constructor(props) {
     super(props);
+
+    // DECLARE TRANSX
+    const panTransX = new Value(0);
+    const panTransY = new Value(0);
 
     // PINCH
     const pinchScale = new Value(1);
@@ -343,7 +290,28 @@ class Viewer extends Component {
     // SCALE
     const scale = new Value(1);
     const pinchActive = eq(pinchState, State.ACTIVE);
-    this._scale = set(scale, bouncyPinch(scale, pinchScale, pinchActive));
+    this._focalDisplacementX = new Value(0);
+    const relativeFocalX = sub(
+      pinchFocalX,
+      add(panTransX, this._focalDisplacementX)
+    );
+    this._focalDisplacementY = new Value(0);
+    const relativeFocalY = sub(
+      pinchFocalY,
+      add(panTransY, this._focalDisplacementY)
+    );
+    this._scale = set(
+      scale,
+      bouncyPinch(
+        scale,
+        pinchScale,
+        pinchActive,
+        relativeFocalX,
+        this._focalDisplacementX,
+        relativeFocalY,
+        this._focalDisplacementY
+      )
+    );
 
     // PAN
     const dragX = new Value(0);
@@ -363,24 +331,18 @@ class Viewer extends Component {
     const panFriction = value => friction(value);
 
     // X
-    const panTransX = new Value(0);
-    this._focalDisplacementX = debug(
-      'focal',
-      focalDisplacement(pinchActive, panTransX, pinchFocalX, this._scale)
+    const panUpX = cond(
+      lessThan(this._scale, 1),
+      0,
+      multiply(-1, this._focalDisplacementX)
     );
-    const [panUpX, panLowX] = createDragBounds(
-      pinchActive,
-      panTransX,
-      pinchFocalX,
-      this._scale,
-      WIDTH
-    );
+    const panLowX = add(panUpX, multiply(-WIDTH, add(max(1, this._scale), -1)));
     this._panTransX = set(
       panTransX,
       bouncy(
         panTransX,
         dragDiff(dragX, panActive),
-        panActive,
+        or(panActive, pinchActive),
         panLowX,
         panUpX,
         panFriction
@@ -388,31 +350,26 @@ class Viewer extends Component {
     );
 
     // Y
-    // const panTransY = new Value(0);
-    // this._focalDisplacementY = focalDisplacement(
-    //   panTransY,
-    //   pinchFocalY,
-    //   this._scale
-    // );
-    // const [panUpY, panLowY] = createDragBounds(
-    //   panTransY,
-    //   pinchFocalY,
-    //   this._scale,
-    //   WIDTH
-    // );
-    // this._panTransY = set(
-    //   panTransY,
-    //   bouncy(
-    //     panTransY,
-    //     dragDiff(dragY, panActive),
-    //     gesturesActive,
-    //     panLowY,
-    //     panUpY,
-    //     panFriction
-    //   )
-    // );
-    this._focalDisplacementY = new Value(0);
-    this._panTransY = new Value(0);
+    const panUpY = cond(
+      lessThan(this._scale, 1),
+      0,
+      multiply(-1, this._focalDisplacementY)
+    );
+    const panLowY = add(
+      panUpY,
+      multiply(-HEIGHT, add(max(1, this._scale), -1))
+    );
+    this._panTransY = set(
+      panTransY,
+      bouncy(
+        panTransY,
+        dragDiff(dragY, panActive),
+        or(panActive, pinchActive),
+        panLowY,
+        panUpY,
+        panFriction
+      )
+    );
   }
   render() {
     // The below two animated values makes it so that scale appears to be done

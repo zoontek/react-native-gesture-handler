@@ -6,7 +6,7 @@ export function adapt(v) {
 }
 
 export function val(v) {
-  return v.__getValue ? v.__getValue() : v;
+  return v && v.__getValue ? v.__getValue() : v || 0;
 }
 
 export function proxyAnimatedObject(target) {
