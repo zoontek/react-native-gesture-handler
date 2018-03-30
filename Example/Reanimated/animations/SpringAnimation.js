@@ -1,12 +1,12 @@
-import AnimatedValue from '../nodes/AnimatedValue';
+import AnimatedValue from '../core/AnimatedValue';
 import Animation from './Animation';
 import SpringConfig from '../SpringConfig';
 import SpringNode from '../nodes/SpringNode';
-import AnimatedOnChange from '../nodes/AnimatedOnChange';
-import AnimatedDetach from '../nodes/AnimatedDetach';
+import AnimatedOnChange from '../core/AnimatedOnChange';
+import AnimatedDetach from '../core/AnimatedDetach';
 import AnimatedOp from '../nodes/AnimatedOp';
 
-import { clock } from '../nodes/AnimatedClock';
+import { clock } from '../core/AnimatedClock';
 
 import invariant from 'fbjs/lib/invariant';
 import { shouldUseNativeDriver } from '../NativeAnimatedHelper';

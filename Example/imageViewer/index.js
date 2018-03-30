@@ -7,7 +7,7 @@ import {
 } from 'react-native-gesture-handler';
 
 import Animated from '../Reanimated/Animated';
-import Easing from 'Easing';
+import Easing from '../Reanimated/Easing';
 
 const {
   set,
@@ -24,11 +24,14 @@ const {
   divide,
   lessThan,
   spring,
+  defined,
   decay,
   timing,
   call,
   diff,
   acc,
+  not,
+  abs,
   block,
   startClock,
   stopClock,
@@ -37,10 +40,6 @@ const {
   Clock,
   event,
 } = Animated;
-
-function not(value) {
-  return cond(value, 0, 1);
-}
 
 function scaleDiff(value) {
   const tmp = new Value(1);
@@ -209,10 +208,6 @@ function bouncyPinch(
   );
 }
 
-function abs(a) {
-  return cond(lessThan(a, 0), multiply(-1, a), a);
-}
-
 function bouncy(
   value,
   gestureDiv,
@@ -378,17 +373,17 @@ class Viewer extends Component {
     const scaleTopLeftFixX = divide(multiply(WIDTH, add(this._scale, -1)), 2);
     const scaleTopLeftFixY = divide(multiply(HEIGHT, add(this._scale, -1)), 2);
     return (
-      <PinchGestureHandler
-        id="pinch"
-        simultaneousHandlers="pan"
-        onGestureEvent={this._onPinchEvent}
-        onHandlerStateChange={this._onPinchEvent}>
-        <PanGestureHandler
-          id="pan"
-          simultaneousHandlers="pinch"
-          onGestureEvent={this._onPanEvent}
-          onHandlerStateChange={this._onPanEvent}>
-          <Animated.View style={styles.wrapper}>
+      <View style={styles.wrapper}>
+        <PinchGestureHandler
+          id="pinch"
+          simultaneousHandlers="pan"
+          onGestureEvent={this._onPinchEvent}
+          onHandlerStateChange={this._onPinchEvent}>
+          <PanGestureHandler
+            id="pan"
+            simultaneousHandlers="pinch"
+            onGestureEvent={this._onPanEvent}
+            onHandlerStateChange={this._onPanEvent}>
             <Animated.Image
               style={[
                 styles.image,
@@ -404,12 +399,12 @@ class Viewer extends Component {
                   ],
                 },
               ]}
-              resizeMode="center"
+              resizeMode="stretch"
               source={this.props.source}
             />
-          </Animated.View>
-        </PanGestureHandler>
-      </PinchGestureHandler>
+          </PanGestureHandler>
+        </PinchGestureHandler>
+      </View>
     );
   }
 }

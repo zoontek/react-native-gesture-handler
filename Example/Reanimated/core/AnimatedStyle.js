@@ -1,11 +1,10 @@
 import AnimatedNode from './AnimatedNode';
 import AnimatedTransform from './AnimatedTransform';
-import AnimatedWithInput from './AnimatedWithInput';
 import NativeAnimatedHelper from '../NativeAnimatedHelper';
 
 import flattenStyle from 'flattenStyle';
 
-export default class AnimatedStyle extends AnimatedWithInput {
+export default class AnimatedStyle extends AnimatedNode {
   constructor(style) {
     style = flattenStyle(style) || {};
     if (style.transform) {
@@ -14,7 +13,7 @@ export default class AnimatedStyle extends AnimatedWithInput {
         transform: new AnimatedTransform(style.transform),
       };
     }
-    super(Object.values(style));
+    super('style', undefined, Object.values(style));
     this._style = style;
   }
 

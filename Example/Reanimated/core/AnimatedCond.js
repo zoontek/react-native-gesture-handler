@@ -1,13 +1,13 @@
 import { val } from '../utils';
-import AnimatedWithInput from './AnimatedWithInput';
+import AnimatedNode from './AnimatedNode';
 
-export default class AnimatedCond extends AnimatedWithInput {
+export default class AnimatedCond extends AnimatedNode {
   _condition;
   _ifBlock;
   _elseBlock;
 
   constructor(condition, ifBlock, elseBlock) {
-    super([condition, ifBlock, elseBlock]);
+    super('cond', undefined, [condition, ifBlock, elseBlock]);
     this._condition = condition;
     this._ifBlock = ifBlock;
     this._elseBlock = elseBlock;

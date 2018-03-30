@@ -1,5 +1,5 @@
-import AnimatedBlock from './nodes/AnimatedBlock';
-import AnimatedNode from './nodes/AnimatedNode';
+import AnimatedBlock from './core/AnimatedBlock';
+import AnimatedNode from './core/AnimatedNode';
 
 export function adapt(v) {
   return Array.isArray(v) ? new AnimatedBlock(v.map(node => adapt(node))) : v;

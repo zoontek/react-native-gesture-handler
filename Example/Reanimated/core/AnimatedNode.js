@@ -3,16 +3,33 @@ import { evaluate } from '../CoreAnimated';
 
 import invariant from 'fbjs/lib/invariant';
 
-// Note(vjeux): this would be better as an interface but flow doesn't
-// support them yet
+let nodeCount = 0;
+
 export default class AnimatedNode {
-  __attach() {}
-  __detach() {
-    if (this.__isNative && this.__nativeTag != null) {
-      NativeAnimatedHelper.API.dropAnimatedNode(this.__nativeTag);
-      this.__nativeTag = undefined;
-    }
+  constructor(nodeName, nodeConfig, inputNodes) {
+    this.__nodeID = ++nodeCount;
+    this.__nodeName = nodeName;
+    this.__nodeConfig = nodeConfig;
+    this.__inputNodes =
+      inputNodes && inputNodes.filter(node => node instanceof AnimatedNode);
   }
+
+  __attach() {
+    this.__inputNodes &&
+      this.__inputNodes.forEach(node => node.__addChild(this));
+  }
+
+  __detach() {
+    this.__inputNodes &&
+      this.__inputNodes.forEach(node => node.__removeChild(this));
+  }
+  // __attach() {}
+  // __detach() {
+  //   if (this.__isNative && this.__nativeTag != null) {
+  //     NativeAnimatedHelper.API.dropAnimatedNode(this.__nativeTag);
+  //     this.__nativeTag = undefined;
+  //   }
+  // }
   __getValue() {
     return evaluate(this);
   }

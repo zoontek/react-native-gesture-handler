@@ -1,4 +1,4 @@
-import AnimatedWithInput from './AnimatedWithInput';
+import AnimatedNode from '../core/AnimatedNode';
 import { proxyAnimatedObject, val } from '../utils';
 
 const MAX_STEPS_MS = 64;
@@ -82,13 +82,13 @@ function spring(now, state, config) {
   }
 }
 
-export default class SpringNode extends AnimatedWithInput {
+export default class SpringNode extends AnimatedNode {
   _clock;
   _state;
   _config;
 
   constructor(clock, state, config) {
-    super([clock]);
+    super('spring', undefined, [clock]);
     this._clock = clock;
     this._state = proxyAnimatedObject(state);
     this._config = proxyAnimatedObject(config);

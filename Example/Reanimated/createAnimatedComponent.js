@@ -1,5 +1,5 @@
 import { AnimatedEvent } from './AnimatedEvent';
-import AnimatedProps from './nodes/AnimatedProps';
+import AnimatedProps from './core/AnimatedProps';
 import React from 'React';
 import ViewStylePropTypes from 'ViewStylePropTypes';
 

@@ -1,24 +1,15 @@
-import AnimatedInterpolation from './AnimatedInterpolation';
-import AnimatedWithInput from './AnimatedWithInput';
 import InteractionManager from 'InteractionManager';
 import NativeAnimatedHelper from '../NativeAnimatedHelper';
+import AnimatedNode from './AnimatedNode';
 import { onNodeUpdated } from '../CoreAnimated';
 
 const NativeAnimatedAPI = NativeAnimatedHelper.API;
 
 let _uniqueId = 1;
 
-/**
- * Standard value for driving animations.  One `Animated.Value` can drive
- * multiple properties in a synchronized fashion, but can only be driven by one
- * mechanism at a time.  Using a new mechanism (e.g. starting a new animation,
- * or calling `setValue`) will stop any previous ones.
- *
- * See http://facebook.github.io/react-native/docs/animatedvalue.html
- */
-export default class AnimatedValue extends AnimatedWithInput {
+export default class AnimatedValue extends AnimatedNode {
   constructor(value) {
-    super();
+    super('val', { value });
     this._startingValue = this._value = value;
     this._offset = 0;
     this._animation = null;
@@ -194,14 +185,6 @@ export default class AnimatedValue extends AnimatedWithInput {
   resetAnimation(callback) {
     this.stopAnimation(callback);
     this._value = this._startingValue;
-  }
-
-  /**
-   * Interpolates the value before updating the property, e.g. mapping 0-1 to
-   * 0-10.
-   */
-  interpolate(config) {
-    return new AnimatedInterpolation(this, config);
   }
 
   /**

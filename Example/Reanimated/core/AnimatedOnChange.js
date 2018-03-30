@@ -1,13 +1,13 @@
-import AnimatedWithInput from './AnimatedWithInput';
+import AnimatedNode from './AnimatedNode';
 import { val } from '../utils';
 
-export default class AnimatedOnChange extends AnimatedWithInput {
+export default class AnimatedOnChange extends AnimatedNode {
   _value;
   _what;
   _lastValue = null;
 
   constructor(value, what) {
-    super([value]);
+    super('listener', { what }, [value]);
     this._value = value;
     this._what = what;
     this._lastValue = val(value);

@@ -1,5 +1,4 @@
 import AnimatedNode from './AnimatedNode';
-import AnimatedWithInput from './AnimatedWithInput';
 import NativeAnimatedHelper from '../NativeAnimatedHelper';
 
 function extractAnimatedParentNodes(transforms) {
@@ -16,9 +15,9 @@ function extractAnimatedParentNodes(transforms) {
   return parents;
 }
 
-export default class AnimatedTransform extends AnimatedWithInput {
+export default class AnimatedTransform extends AnimatedNode {
   constructor(transforms) {
-    super(extractAnimatedParentNodes(transforms));
+    super('transform', undefined, extractAnimatedParentNodes(transforms));
     this._transforms = transforms;
   }
 

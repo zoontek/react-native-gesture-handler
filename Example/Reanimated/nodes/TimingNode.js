@@ -1,4 +1,4 @@
-import AnimatedWithInput from './AnimatedWithInput';
+import AnimatedNode from '../core/AnimatedNode';
 import { val, proxyAnimatedObject } from '../utils';
 
 function timing(now, state, config) {
@@ -23,14 +23,14 @@ function timing(now, state, config) {
   state.time = now;
 }
 
-export default class TimingNode extends AnimatedWithInput {
+export default class TimingNode extends AnimatedNode {
   _state;
   _config;
   _easing;
   _clock;
 
   constructor(clock, state, config) {
-    super([clock]);
+    super('timing', undefined, [clock]);
     this._clock = clock;
     this._state = proxyAnimatedObject(state);
     this._config = proxyAnimatedObject(config);

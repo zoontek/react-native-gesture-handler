@@ -1,13 +1,32 @@
 import { Image, Text, View, ScrollView } from 'react-native';
-import AnimatedImplementation from './AnimatedImplementation';
+import AnimatedClock from './core/AnimatedClock';
+import AnimatedValue from './core/AnimatedValue';
+import AnimatedNode from './core/AnimatedNode';
+import * as base from './base';
+import * as derived from './derived';
+import createAnimatedComponent from './createAnimatedComponent';
+import decay from './animations/decay';
+import timing from './animations/timing';
 
 const Animated = {
-  View: AnimatedImplementation.createAnimatedComponent(View),
-  Text: AnimatedImplementation.createAnimatedComponent(Text),
-  Image: AnimatedImplementation.createAnimatedComponent(Image),
-  ScrollView: AnimatedImplementation.createAnimatedComponent(ScrollView),
-};
+  // components
+  View: createAnimatedComponent(View),
+  Text: createAnimatedComponent(Text),
+  Image: createAnimatedComponent(Image),
+  ScrollView: createAnimatedComponent(ScrollView),
 
-Object.assign(Animated, AnimatedImplementation);
+  // classes
+  Clock: AnimatedClock,
+  Value: AnimatedValue,
+  Node: AnimatedNode,
+
+  // operations
+  ...base,
+  ...derived,
+
+  // animations
+  decay,
+  timing,
+};
 
 export default Animated;

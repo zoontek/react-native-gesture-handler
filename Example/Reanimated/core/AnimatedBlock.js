@@ -1,11 +1,11 @@
-import AnimatedWithInput from './AnimatedWithInput';
+import AnimatedNode from './AnimatedNode';
 import { val } from '../utils';
 
-export default class AnimatedBlock extends AnimatedWithInput {
+export default class AnimatedBlock extends AnimatedNode {
   _array;
 
   constructor(array) {
-    super(array);
+    super('block', undefined, array);
     this._array = array;
   }
 

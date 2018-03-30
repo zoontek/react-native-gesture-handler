@@ -1,10 +1,10 @@
-import AnimatedValue from '../nodes/AnimatedValue';
+import AnimatedValue from '../core/AnimatedValue';
 import TimingNode from '../nodes/TimingNode';
 import Animation from './Animation';
 
-import { clock } from '../nodes/AnimatedClock';
-import AnimatedOnChange from '../nodes/AnimatedOnChange';
-import AnimatedDetach from '../nodes/AnimatedDetach';
+import { clock } from '../core/AnimatedClock';
+import AnimatedOnChange from '../core/AnimatedOnChange';
+import AnimatedDetach from '../core/AnimatedDetach';
 
 import { shouldUseNativeDriver } from '../NativeAnimatedHelper';
 

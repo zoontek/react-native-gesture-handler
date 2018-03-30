@@ -1,12 +1,12 @@
-import AnimatedWithInput from './AnimatedWithInput';
+import AnimatedNode from './AnimatedNode';
 import { val } from '../utils';
 
-export default class AnimatedSet extends AnimatedWithInput {
+export default class AnimatedSet extends AnimatedNode {
   _what;
   _value;
 
   constructor(what, value) {
-    super([value]);
+    super('set', { what }, [value]);
     this._what = what;
     this._value = value;
   }

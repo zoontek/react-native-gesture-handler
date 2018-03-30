@@ -1,12 +1,12 @@
-import AnimatedWithInput from './AnimatedWithInput';
+import AnimatedNode from '../core/AnimatedNode';
 import { val } from '../utils';
 
-export default class AnimatedOp extends AnimatedWithInput {
+export default class AnimatedOp extends AnimatedNode {
   _inputNodes;
   _processor;
 
   constructor(inputNodes, processor) {
-    super(inputNodes);
+    super('op', undefined, inputNodes);
     this._inputNodes = inputNodes;
     this._processor = processor;
   }

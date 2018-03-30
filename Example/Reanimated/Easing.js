@@ -1,4 +1,18 @@
-let ease;
+import {
+  greaterThan,
+  cond,
+  greaterOrEq,
+  lessThan,
+  multiply,
+  pow,
+  cos,
+  sqrt,
+  sub,
+  add,
+  debug,
+  divide,
+} from './base';
+import AnimatedBezier from './core/AnimatedBezier';
 
 /**
  * The `Easing` module implements common easing functions. This module is used
@@ -47,20 +61,6 @@ let ease;
  */
 export default class Easing {
   /**
-   * A stepping function, returns 1 for any positive value of `n`.
-   */
-  static step0(n) {
-    return n > 0 ? 1 : 0;
-  }
-
-  /**
-   * A stepping function, returns 1 if `n` is greater than or equal to 1.
-   */
-  static step1(n) {
-    return n >= 1 ? 1 : 0;
-  }
-
-  /**
    * A linear function, `f(t) = t`. Position correlates to elapsed time one to
    * one.
    *
@@ -77,10 +77,7 @@ export default class Easing {
    * http://cubic-bezier.com/#.42,0,1,1
    */
   static ease(t) {
-    if (!ease) {
-      ease = Easing.bezier(0.42, 0, 1, 1);
-    }
-    return ease(t);
+    return new AnimatedBezier(t, 0.42, 0, 1, 1);
   }
 
   /**
@@ -90,7 +87,7 @@ export default class Easing {
    * http://easings.net/#easeInQuad
    */
   static quad(t) {
-    return t * t;
+    return multiply(t, t);
   }
 
   /**
@@ -100,7 +97,7 @@ export default class Easing {
    * http://easings.net/#easeInCubic
    */
   static cubic(t) {
-    return t * t * t;
+    return multiply(t, t, t);
   }
 
   /**
@@ -110,7 +107,7 @@ export default class Easing {
    * n = 5: http://easings.net/#easeInQuint
    */
   static poly(n) {
-    return t => Math.pow(t, n);
+    return t => pow(t, n);
   }
 
   /**
@@ -119,7 +116,7 @@ export default class Easing {
    * http://easings.net/#easeInSine
    */
   static sin(t) {
-    return 1 - Math.cos(t * Math.PI / 2);
+    return sub(1, cos(multiply(t, Math.PI, 0.5)));
   }
 
   /**
@@ -128,7 +125,7 @@ export default class Easing {
    * http://easings.net/#easeInCirc
    */
   static circle(t) {
-    return 1 - Math.sqrt(1 - t * t);
+    return sub(1, sqrt(sub(1, multiply(t, t))));
   }
 
   /**
@@ -137,7 +134,7 @@ export default class Easing {
    * http://easings.net/#easeInExpo
    */
   static exp(t) {
-    return Math.pow(2, 10 * (t - 1));
+    return pow(2, multiply(10, sub(t, 1)));
   }
 
   /**
@@ -152,7 +149,11 @@ export default class Easing {
    */
   static elastic(bounciness = 1) {
     const p = bounciness * Math.PI;
-    return t => 1 - Math.pow(Math.cos(t * Math.PI / 2), 3) * Math.cos(t * p);
+    return t =>
+      sub(
+        1,
+        multiply(pow(cos(multiply(t, Math.PI, 0.5)), 3), cos(multiply(t, p)))
+      );
   }
 
   /**
@@ -167,7 +168,7 @@ export default class Easing {
     if (s === undefined) {
       s = 1.70158;
     }
-    return t => t * t * ((s + 1) * t - s);
+    return t => multiply(t, t, sub(multiply(add(s, 1), t), s));
   }
 
   /**
@@ -176,22 +177,20 @@ export default class Easing {
    * http://easings.net/#easeInBounce
    */
   static bounce(t) {
-    if (t < 1 / 2.75) {
-      return 7.5625 * t * t;
-    }
-
-    if (t < 2 / 2.75) {
-      t -= 1.5 / 2.75;
-      return 7.5625 * t * t + 0.75;
-    }
-
-    if (t < 2.5 / 2.75) {
-      t -= 2.25 / 2.75;
-      return 7.5625 * t * t + 0.9375;
-    }
-
-    t -= 2.625 / 2.75;
-    return 7.5625 * t * t + 0.984375;
+    const sq = v => multiply(7.5625, v, v);
+    return cond(
+      lessThan(t, 1 / 2.75),
+      sq(t),
+      cond(
+        lessThan(t, 2 / 2.75),
+        add(0.75, sq(sub(t, 1.5 / 2.75))),
+        cond(
+          lessThan(t, 2.5 / 2.76),
+          add(0.9375, sq(sub(t, 2.25 / 2.75))),
+          add(0.984375, sq(sub(t, 2.625 / 2.75)))
+        )
+      )
+    );
   }
 
   /**
@@ -202,8 +201,7 @@ export default class Easing {
    * http://cubic-bezier.com/
    */
   static bezier(x1, y1, x2, y2) {
-    const _bezier = require('bezier');
-    return _bezier(x1, y1, x2, y2);
+    return t => new AnimatedBezier(t, x1, y1, x2, y2);
   }
 
   /**
@@ -217,7 +215,7 @@ export default class Easing {
    * Runs an easing function backwards.
    */
   static out(easing) {
-    return t => 1 - easing(1 - t);
+    return t => sub(1, easing(sub(1, t)));
   }
 
   /**
@@ -226,11 +224,11 @@ export default class Easing {
    * duration.
    */
   static inOut(easing) {
-    return t => {
-      if (t < 0.5) {
-        return easing(t * 2) / 2;
-      }
-      return 1 - easing((1 - t) * 2) / 2;
-    };
+    return t =>
+      cond(
+        lessThan(t, 0.5),
+        divide(easing(multiply(t, 2)), 2),
+        sub(1, divide(easing(multiply(sub(1, t), 2)), 2))
+      );
   }
 }

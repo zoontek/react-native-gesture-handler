@@ -16,6 +16,7 @@ import HorizontalDrawer from './horizontalDrawer';
 import ChatHeads from './chatHeads';
 import Anims from './anims';
 import ImageViewer from './imageViewer';
+import Test from './test';
 import { ComboWithGHScroll, ComboWithRNScroll } from './combo';
 
 const SCREENS = {
@@ -39,6 +40,7 @@ const SCREENS = {
   PanResponder: { screen: PanResponder },
   Bouncing: { screen: Bouncing, title: 'Twist & bounce back animation' },
   Anims: { screen: Anims, title: 'Reanimated' },
+  Test: { screen: Test, title: 'Reanimated' },
   ImageViewer: { screen: ImageViewer, title: 'Reanimated Image Viewer' },
   // ChatHeads: {
   //   screen: ChatHeads,

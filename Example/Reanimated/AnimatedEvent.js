@@ -1,4 +1,4 @@
-import AnimatedValue from './nodes/AnimatedValue';
+import AnimatedValue from './core/AnimatedValue';
 import NativeAnimatedHelper, {
   shouldUseNativeDriver,
 } from './NativeAnimatedHelper';
