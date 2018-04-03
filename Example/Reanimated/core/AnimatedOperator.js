@@ -30,6 +30,7 @@ const OPERATIONS = {
   sqrt: single(a => Math.sqrt(a)),
   sin: single(a => Math.sin(a)),
   cos: single(a => Math.cos(a)),
+  exp: single(a => Math.exp(a)),
 
   // logical
   and: reduceFrom((a, b) => a && b, true),

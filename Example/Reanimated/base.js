@@ -1,12 +1,13 @@
 import { AnimatedEvent } from './AnimatedEvent';
 import AnimatedCond from './core/AnimatedCond';
 import AnimatedSet from './core/AnimatedSet';
-import AnimatedOp from './nodes/AnimatedOp';
 import AnimatedOperator from './core/AnimatedOperator';
 import AnimatedOnChange from './core/AnimatedOnChange';
 import AnimatedStartClock from './core/AnimatedStartClock';
 import AnimatedStopClock from './core/AnimatedStopClock';
 import AnimatedClockTest from './core/AnimatedClockTest';
+import AnimatedDebug from './core/AnimatedDebug';
+import AnimatedCall from './core/AnimatedCall';
 
 import { adapt } from './utils';
 
@@ -23,6 +24,7 @@ export const modulo = operator('modulo');
 export const sqrt = operator('sqrt');
 export const sin = operator('sin');
 export const cos = operator('cos');
+export const exp = operator('exp');
 export const lessThan = operator('lessThan');
 export const eq = operator('eq');
 export const greaterThan = operator('greaterThan');
@@ -46,18 +48,12 @@ export const block = function(items) {
   return adapt(items);
 };
 
-export const call = function(items, func) {
-  return new AnimatedOp(
-    items.map(node => adapt(node)),
-    values => func(values) && 0
-  );
+export const call = function(args, func) {
+  return new AnimatedCall(args, func);
 };
 
 export const debug = function(message, value) {
-  return new AnimatedOp([adapt(value)], ([value]) => {
-    console.log(message, value);
-    return value;
-  });
+  return new AnimatedDebug(message, adapt(value));
 };
 
 export const onChange = function(value, action) {

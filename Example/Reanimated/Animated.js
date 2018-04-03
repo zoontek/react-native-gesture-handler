@@ -7,6 +7,7 @@ import * as derived from './derived';
 import createAnimatedComponent from './createAnimatedComponent';
 import decay from './animations/decay';
 import timing from './animations/timing';
+import spring from './animations/spring';
 
 const Animated = {
   // components
@@ -27,6 +28,7 @@ const Animated = {
   // animations
   decay,
   timing,
+  spring,
 };
 
 export default Animated;
