@@ -1,15 +1,12 @@
 import AnimatedValue from '../core/AnimatedValue';
 import Animation from './Animation';
 import SpringConfig from '../SpringConfig';
-import SpringNode from '../nodes/SpringNode';
-import AnimatedOnChange from '../core/AnimatedOnChange';
-import AnimatedDetach from '../core/AnimatedDetach';
-import AnimatedOp from '../nodes/AnimatedOp';
+import spring from './spring';
 
-import { clock } from '../core/AnimatedClock';
+import { block, clockRunning, startClock, stopClock, cond } from '../base';
+import Clock from '../core/AnimatedClock';
 
 import invariant from 'fbjs/lib/invariant';
-import { shouldUseNativeDriver } from '../NativeAnimatedHelper';
 
 function withDefault(value, defaultValue) {
   if (value === undefined || value === null) {
@@ -32,10 +29,6 @@ export default class SpringAnimation extends Animation {
     this._lastVelocity = withDefault(config.velocity, 0);
     this._toValue = config.toValue;
     this._delay = withDefault(config.delay, 0);
-    this._useNativeDriver = shouldUseNativeDriver(config);
-    this.__isInteraction =
-      config.isInteraction !== undefined ? config.isInteraction : true;
-    this.__iterations = config.iterations !== undefined ? config.iterations : 1;
 
     if (
       config.stiffness !== undefined ||
@@ -88,12 +81,12 @@ export default class SpringAnimation extends Animation {
   }
 
   start(value) {
-    this._finished = new AnimatedValue(0);
+    this._clock = new Clock();
     const state = {
-      finished: this._finished,
-      velocity: this._initialVelocity,
+      finished: new AnimatedValue(0),
+      velocity: new AnimatedValue(this._initialVelocity),
       position: value,
-      time: 0,
+      time: new AnimatedValue(0),
     };
 
     const config = {
@@ -106,20 +99,14 @@ export default class SpringAnimation extends Animation {
       restDisplacementThreshold: this._restDisplacementThreshold,
     };
 
-    const step = new SpringNode(clock, state, config);
-    const detach = new AnimatedDetach(step);
-    const clb = finished => {
-      console.log('FINISHED', finished);
-    };
-    const call = new AnimatedOp([this._finished], ([finished]) =>
-      clb(finished)
-    );
-    const block = new AnimatedOp([detach, call], () => {});
-    new AnimatedOnChange(this._finished, block).__attach();
-    step.__attach();
+    return block([
+      cond(clockRunning(this._clock), 0, [startClock(this._clock)]),
+      spring(this._clock, state, config),
+      cond(state.finished, stopClock(this._clock)),
+    ]);
   }
 
   stop() {
-    this._finished && this._finished.setValue(1);
+    // this._finished && this._finished.setValue(1);
   }
 }

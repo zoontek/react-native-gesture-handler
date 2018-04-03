@@ -1,7 +1,34 @@
 import NativeAnimatedHelper from '../NativeAnimatedHelper';
-import { evaluate } from '../CoreAnimated';
 
 import invariant from 'fbjs/lib/invariant';
+
+const UPDATED_NODES = [];
+
+let loopID = 1;
+let propUpdatesEnqueued = null;
+
+function runPropUpdates() {
+  const visitedNodes = new Set();
+  const findAndUpdateNodes = node => {
+    if (visitedNodes.has(node)) {
+      return;
+    } else {
+      visitedNodes.add(node);
+    }
+    if (typeof node.update === 'function') {
+      node.update();
+    } else {
+      node.__getChildren().forEach(findAndUpdateNodes);
+    }
+  };
+  for (let i = 0; i < UPDATED_NODES.length; i++) {
+    const node = UPDATED_NODES[i];
+    findAndUpdateNodes(node);
+  }
+  UPDATED_NODES.length = 0; // clear array
+  propUpdatesEnqueued = null;
+  loopID += 1;
+}
 
 let nodeCount = 0;
 
@@ -17,25 +44,47 @@ export default class AnimatedNode {
   __attach() {
     this.__inputNodes &&
       this.__inputNodes.forEach(node => node.__addChild(this));
+    this.__attached = true;
   }
 
   __detach() {
     this.__inputNodes &&
       this.__inputNodes.forEach(node => node.__removeChild(this));
+    this.__attached = false;
   }
-  // __attach() {}
-  // __detach() {
-  //   if (this.__isNative && this.__nativeTag != null) {
-  //     NativeAnimatedHelper.API.dropAnimatedNode(this.__nativeTag);
-  //     this.__nativeTag = undefined;
-  //   }
-  // }
+
+  __lastLoopID;
+  __memoizedValue;
+
   __getValue() {
-    return evaluate(this);
+    if (this.__lastLoopID < loopID) {
+      this.__lastLoopID = loopID;
+      return (this.__memoizedValue = this.__onEvaluate());
+    }
+    return this.__memoizedValue;
   }
+
+  __forceUpdateCache(newValue) {
+    this.__memoizedValue = newValue;
+    this.__markUpdated();
+  }
+
+  __dangerouslyRescheduleEvaluate() {
+    this.__lastLoopID = 0;
+    this.__markUpdated();
+  }
+
+  __markUpdated() {
+    UPDATED_NODES.push(this);
+    if (!propUpdatesEnqueued) {
+      propUpdatesEnqueued = setImmediate(runPropUpdates);
+    }
+  }
+
   __onEvaluate() {
     throw new Excaption('Missing implementation of onEvaluate');
   }
+
   __getProps() {
     return this.__getValue();
   }

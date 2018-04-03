@@ -1,7 +1,6 @@
-import InteractionManager from 'InteractionManager';
 import NativeAnimatedHelper from '../NativeAnimatedHelper';
 import AnimatedNode from './AnimatedNode';
-import { onNodeUpdated } from '../CoreAnimated';
+import { val } from '../utils';
 
 const NativeAnimatedAPI = NativeAnimatedHelper.API;
 
@@ -22,6 +21,9 @@ export default class AnimatedValue extends AnimatedNode {
   }
 
   __onEvaluate() {
+    if (this.__inputNodes && this.__inputNodes.length) {
+      this.__inputNodes.forEach(val);
+    }
     return this._value + this._offset;
   }
 
@@ -193,31 +195,15 @@ export default class AnimatedValue extends AnimatedNode {
    *
    * See http://facebook.github.io/react-native/docs/animatedvalue.html#animate
    */
-  animate(animation, callback) {
-    let handle = null;
-    if (animation.__isInteraction) {
-      handle = InteractionManager.createInteractionHandle();
-    }
-    const previousAnimation = this._animation;
+  animate(animation) {
     this._animation && this._animation.stop();
     this._animation = animation;
-    animation.start(this);
-    //   this._value,
-    //   value => {
-    //     // Natively driven animations will never call into that callback, therefore we can always
-    //     // pass flush = true to allow the updated value to propagate to native with setNativeProps
-    //     this._updateValue(value, true /* flush */);
-    //   },
-    //   result => {
-    //     this._animation = null;
-    //     if (handle !== null) {
-    //       InteractionManager.clearInteractionHandle(handle);
-    //     }
-    //     callback && callback(result);
-    //   },
-    //   previousAnimation,
-    //   this,
-    // );
+
+    const node = animation.start(this);
+    this.__detach();
+    this.__inputNodes = [node];
+    this.__attach();
+    this.__dangerouslyRescheduleEvaluate();
   }
 
   /**
@@ -238,17 +224,9 @@ export default class AnimatedValue extends AnimatedNode {
 
   _updateValue(value, flush) {
     this._value = value;
-    onNodeUpdated(this, value);
+    this.__forceUpdateCache(value);
     for (const key in this._listeners) {
       this._listeners[key]({ value: this.__getValue() });
     }
-  }
-
-  __getNativeConfig() {
-    return {
-      type: 'value',
-      value: this._value,
-      offset: this._offset,
-    };
   }
 }

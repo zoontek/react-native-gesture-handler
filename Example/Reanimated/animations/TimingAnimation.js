@@ -1,56 +1,35 @@
 import AnimatedValue from '../core/AnimatedValue';
-import TimingNode from '../nodes/TimingNode';
+import timing from './timing';
+import { block, clockRunning, startClock, stopClock, cond } from '../base';
+import Clock from '../core/AnimatedClock';
+import Easing from '../Easing';
+
 import Animation from './Animation';
 
-import { clock } from '../core/AnimatedClock';
-import AnimatedOnChange from '../core/AnimatedOnChange';
-import AnimatedDetach from '../core/AnimatedDetach';
-
-import { shouldUseNativeDriver } from '../NativeAnimatedHelper';
-
-let _easeInOut;
-function easeInOut() {
-  if (!_easeInOut) {
-    const Easing = require('Easing');
-    _easeInOut = Easing.inOut(Easing.ease);
-  }
-  return _easeInOut;
-}
+const easeInOut = Easing.inOut(Easing.ease);
 
 export default class TimingAnimation extends Animation {
-  _startTime;
-  _fromValue;
   _toValue;
   _duration;
-  _delay;
   _easing;
-  _onUpdate;
-  _animationFrame;
-  _timeout;
-  _useNativeDriver;
 
-  _finished;
+  _clock;
 
   constructor(config) {
     super();
-    this._config = { ...config };
     this._toValue = config.toValue;
-    this._easing = config.easing !== undefined ? config.easing : easeInOut();
+    this._easing = config.easing !== undefined ? config.easing : easeInOut;
     this._duration = config.duration !== undefined ? config.duration : 500;
-    this._delay = config.delay !== undefined ? config.delay : 0;
-    this.__iterations = config.iterations !== undefined ? config.iterations : 1;
-    this.__isInteraction =
-      config.isInteraction !== undefined ? config.isInteraction : true;
-    this._useNativeDriver = shouldUseNativeDriver(config);
   }
 
   start(value) {
-    this._finished = new AnimatedValue(0);
+    this._clock = new Clock();
+
     const state = {
-      finished: this._finished,
+      finished: new AnimatedValue(0),
       position: value,
-      time: 0,
-      frameTime: 0,
+      time: new AnimatedValue(0),
+      frameTime: new AnimatedValue(0),
     };
 
     const config = {
@@ -59,12 +38,14 @@ export default class TimingAnimation extends Animation {
       easing: this._easing,
     };
 
-    const step = new TimingNode(clock, state, config);
-    new AnimatedOnChange(this._finished, new AnimatedDetach(step)).__attach();
-    step.__attach();
+    return block([
+      cond(clockRunning(this._clock), 0, [startClock(this._clock)]),
+      timing(this._clock, state, config),
+      cond(state.finished, stopClock(this._clock)),
+    ]);
   }
 
   stop() {
-    this._finished && this._finished.setValue(1);
+    // this._finished && this._finished.setValue(1);
   }
 }
