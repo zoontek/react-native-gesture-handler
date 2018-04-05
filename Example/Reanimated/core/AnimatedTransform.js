@@ -17,7 +17,7 @@ function extractAnimatedParentNodes(transforms) {
 
 export default class AnimatedTransform extends AnimatedNode {
   constructor(transforms) {
-    super('transform', undefined, extractAnimatedParentNodes(transforms));
+    super({ type: 'transform' }, extractAnimatedParentNodes(transforms));
     this._transforms = transforms;
   }
 

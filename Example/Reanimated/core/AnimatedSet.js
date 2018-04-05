@@ -6,7 +6,7 @@ export default class AnimatedSet extends AnimatedNode {
   _value;
 
   constructor(what, value) {
-    super('set', { what }, [value]);
+    super({ type: 'set', what }, [value]);
     this._what = what;
     this._value = value;
   }

@@ -5,7 +5,7 @@ export default class AnimatedBlock extends AnimatedNode {
   _array;
 
   constructor(array) {
-    super('block', undefined, array);
+    super({ type: 'block' }, array);
     this._array = array;
   }
 

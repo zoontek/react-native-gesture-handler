@@ -13,7 +13,7 @@ export default class AnimatedStyle extends AnimatedNode {
         transform: new AnimatedTransform(style.transform),
       };
     }
-    super('style', undefined, Object.values(style));
+    super({ type: 'style' }, Object.values(style));
     this._style = style;
   }
 

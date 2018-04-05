@@ -60,16 +60,16 @@ export default class Example extends Component {
   constructor(props) {
     super(props);
 
-    const transX = new Value(0);
-    const clock = new Clock();
+    // const transX = new Value(0);
+    // const clock = new Clock();
     this._transX = new Value(0); // runSpring(clock, transX, 150);
   }
   componentDidMount() {
-    Animated.decay(this._transX, {
-      duration: 300,
-      velocity: 300,
-      toValue: 150,
-    }).start();
+    // Animated.spring(this._transX, {
+    //   duration: 300,
+    //   velocity: -300,
+    //   toValue: 150,
+    // }).start();
   }
   render() {
     return (

@@ -7,7 +7,7 @@ export default class AnimatedOnChange extends AnimatedNode {
   _lastValue = null;
 
   constructor(value, what) {
-    super('listener', { what }, [value]);
+    super({ type: 'listener', what }, [value]);
     this._value = value;
     this._what = what;
     this._lastValue = val(value);

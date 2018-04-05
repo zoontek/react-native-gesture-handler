@@ -135,7 +135,7 @@ export default class AnimatedBezier extends AnimatedNode {
   _bezier;
 
   constructor(value, mX1, mY1, mX2, mY2) {
-    super('bezier', { mX1, mY1, mX2, mY2 }, [value]);
+    super({ type: 'bezier', mX1, mY1, mX2, mY2 }, [value]);
     this._value = value;
     this._bezier = bezier(mX1, mY1, mX2, mY2);
   }

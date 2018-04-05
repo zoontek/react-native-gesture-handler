@@ -53,7 +53,7 @@ export default class AnimatedOperator extends AnimatedNode {
   _operation;
 
   constructor(operator, input) {
-    super(`op_${operator}`, undefined, input);
+    super({ type: 'op', op: operator }, input);
     this._op = operator;
     this._input = input;
   }

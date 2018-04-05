@@ -8,7 +8,7 @@ let _uniqueId = 1;
 
 export default class AnimatedValue extends AnimatedNode {
   constructor(value) {
-    super('val', { value });
+    super({ type: 'value', value });
     this._startingValue = this._value = value;
     this._offset = 0;
     this._animation = null;

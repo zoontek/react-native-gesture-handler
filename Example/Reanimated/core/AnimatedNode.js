@@ -1,11 +1,22 @@
+import { NativeModules } from 'react-native';
 import NativeAnimatedHelper from '../NativeAnimatedHelper';
 
-import invariant from 'fbjs/lib/invariant';
+const { ReanimatedModule } = NativeModules;
 
 const UPDATED_NODES = [];
 
 let loopID = 1;
 let propUpdatesEnqueued = null;
+
+function sanitizeConfig(config) {
+  for (const key in config) {
+    const value = config[key];
+    if (value instanceof AnimatedNode) {
+      config[key] = value.__nodeID;
+    }
+  }
+  return config;
+}
 
 function runPropUpdates() {
   const visitedNodes = new Set();
@@ -33,15 +44,15 @@ function runPropUpdates() {
 let nodeCount = 0;
 
 export default class AnimatedNode {
-  constructor(nodeName, nodeConfig, inputNodes) {
+  constructor(nodeConfig, inputNodes) {
     this.__nodeID = ++nodeCount;
-    this.__nodeName = nodeName;
-    this.__nodeConfig = nodeConfig;
+    this.__nodeConfig = sanitizeConfig(nodeConfig);
     this.__inputNodes =
       inputNodes && inputNodes.filter(node => node instanceof AnimatedNode);
   }
 
   __attach() {
+    this.__nativeInitialize();
     this.__inputNodes &&
       this.__inputNodes.forEach(node => node.__addChild(this));
     this.__attached = true;
@@ -51,10 +62,13 @@ export default class AnimatedNode {
     this.__inputNodes &&
       this.__inputNodes.forEach(node => node.__removeChild(this));
     this.__attached = false;
+    this.__nativeTearDown();
   }
 
-  __lastLoopID;
-  __memoizedValue;
+  __lastLoopID = 0;
+  __memoizedValue = null;
+
+  __children = [];
 
   __getValue() {
     if (this.__lastLoopID < loopID) {
@@ -81,6 +95,19 @@ export default class AnimatedNode {
     }
   }
 
+  __nativeInitialize() {
+    if (this.__nodeConfig) {
+      ReanimatedModule.createNode(this.__nodeID, this.__nodeConfig);
+      this.__nodeConfig = undefined;
+    }
+  }
+
+  __nativeTearDown() {
+    if (!this.__nodeConfig) {
+      ReanimatedModule.dropNode(this.__nodeID);
+    }
+  }
+
   __onEvaluate() {
     throw new Excaption('Missing implementation of onEvaluate');
   }
@@ -98,14 +125,17 @@ export default class AnimatedNode {
       this.__attach();
     }
     this.__children.push(child);
-    if (this.__isNative) {
-      // Only accept "native" animated nodes as children
-      child.__makeNative();
-      NativeAnimatedHelper.API.connectAnimatedNodes(
-        this.__getNativeTag(),
-        child.__getNativeTag()
-      );
-    }
+    child.__nativeInitialize();
+    // CONNECT!
+
+    // if (this.__isNative) {
+    //   // Only accept "native" animated nodes as children
+    //   child.__makeNative();
+    //   NativeAnimatedHelper.API.connectAnimatedNodes(
+    //     this.__getNativeTag(),
+    //     child.__getNativeTag()
+    //   );
+    // }
   }
 
   __removeChild(child) {
@@ -124,40 +154,5 @@ export default class AnimatedNode {
     if (this.__children.length === 0) {
       this.__detach();
     }
-  }
-
-  /* Methods and props used by native Animated impl */
-  __lastLoopID = 0;
-  __memoizedValue = null;
-
-  __children = [];
-  __makeNative() {
-    if (!this.__isNative) {
-      throw new Error('This node cannot be made a "native" animated node');
-    }
-  }
-  __getNativeTag() {
-    NativeAnimatedHelper.assertNativeAnimatedModule();
-    invariant(
-      this.__isNative,
-      'Attempt to get native tag from node not marked as "native"'
-    );
-    if (this.__nativeTag == null) {
-      const nativeTag = NativeAnimatedHelper.generateNewNodeTag();
-      NativeAnimatedHelper.API.createAnimatedNode(
-        nativeTag,
-        this.__getNativeConfig()
-      );
-      this.__nativeTag = nativeTag;
-    }
-    return this.__nativeTag;
-  }
-  __getNativeConfig() {
-    throw new Error(
-      'This JS animated node type cannot be used as native animated node'
-    );
-  }
-  toJSON() {
-    return this.__getValue();
   }
 }

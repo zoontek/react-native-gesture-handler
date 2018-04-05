@@ -7,7 +7,7 @@ export default class AnimatedCall extends AnimatedNode {
 
   constructor(args, jsFunction) {
     const callbackID = ++CALLBACK_ID;
-    super('call', { callbackID }, args);
+    super({ type: 'call', callbackID }, args);
     this._callback = jsFunction;
     this._args = args;
   }

@@ -7,7 +7,7 @@ export default class AnimatedCond extends AnimatedNode {
   _elseBlock;
 
   constructor(condition, ifBlock, elseBlock) {
-    super('cond', undefined, [condition, ifBlock, elseBlock]);
+    super({ type: 'cond' }, [condition, ifBlock, elseBlock]);
     this._condition = condition;
     this._ifBlock = ifBlock;
     this._elseBlock = elseBlock;
