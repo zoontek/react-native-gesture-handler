@@ -23,20 +23,20 @@
 
 - (void)dropNode:(nonnull REANodeID)tag;
 
-//- (void)connectAnimatedNodes:(nonnull NSNumber *)parentTag
-//                    childTag:(nonnull NSNumber *)childTag;
-//
-//- (void)disconnectAnimatedNodes:(nonnull NSNumber *)parentTag
-//                       childTag:(nonnull NSNumber *)childTag;
-//
-//- (void)connectAnimatedNodeToView:(nonnull NSNumber *)nodeTag
-//                          viewTag:(nonnull NSNumber *)viewTag
-//                         viewName:(nonnull NSString *)viewName;
-//
+- (void)connectNodes:(nonnull REANodeID)parentID
+             childID:(nonnull REANodeID)childID;
+
+- (void)disconnectNodes:(nonnull REANodeID)parentID
+                childID:(nonnull REANodeID)childID;
+
+- (void)connectNodeToView:(nonnull REANodeID)nodeID
+                  viewTag:(nonnull NSNumber *)viewTag
+                 viewName:(nonnull NSString *)viewName;
+
 //- (void)restoreDefaultValues:(nonnull NSNumber *)nodeTag;
-//
-//- (void)disconnectAnimatedNodeFromView:(nonnull NSNumber *)nodeTag
-//                               viewTag:(nonnull NSNumber *)viewTag;
+
+- (void)disconnectNodeFromView:(nonnull NSNumber *)nodeTag
+                       viewTag:(nonnull NSNumber *)viewTag;
 
 
 

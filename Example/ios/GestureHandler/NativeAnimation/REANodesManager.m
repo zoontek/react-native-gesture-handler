@@ -56,14 +56,6 @@
             @"style" : [REAStyleNode class],
             @"transform" : [REATransformNode class],
             @"value" : [REAValueNode class]};
-//            @"props" : [RCTPropsAnimatedNode class],
-//            @"interpolation" : [RCTInterpolationAnimatedNode class],
-//            @"addition" : [RCTAdditionAnimatedNode class],
-//            @"diffclamp": [RCTDiffClampAnimatedNode class],
-//            @"division" : [RCTDivisionAnimatedNode class],
-//            @"multiplication" : [RCTMultiplicationAnimatedNode class],
-//            @"modulus" : [RCTModuloAnimatedNode class],
-
   });
 
   NSString *nodeType = [RCTConvert NSString:config[@"type"]];
@@ -77,7 +69,6 @@
   REANode *node = [[nodeClass alloc] initWithID:nodeID config:config];
   node.nodesManager = self;
   _nodes[nodeID] = node;
-//  [node setNeedsUpdate];
 }
 
 - (void)dropNode:(REANodeID)nodeID
@@ -90,49 +81,47 @@
 }
 
 
-//- (void)connectAnimatedNodes:(nonnull NSNumber *)parentTag
-//                    childTag:(nonnull NSNumber *)childTag
-//{
-//  RCTAssertParam(parentTag);
-//  RCTAssertParam(childTag);
-//
-//  REAReanimatedNode *parentNode = _animationNodes[parentTag];
-//  REAReanimatedNode *childNode = _animationNodes[childTag];
-//
-//  RCTAssertParam(parentNode);
-//  RCTAssertParam(childNode);
-//
-//  [parentNode addChild:childNode];
-//  [childNode setNeedsUpdate];
-//}
-//
-//- (void)disconnectAnimatedNodes:(nonnull NSNumber *)parentTag
-//                       childTag:(nonnull NSNumber *)childTag
-//{
-//  RCTAssertParam(parentTag);
-//  RCTAssertParam(childTag);
-//
-//  REAReanimatedNode *parentNode = _animationNodes[parentTag];
-//  REAReanimatedNode *childNode = _animationNodes[childTag];
-//
-//  RCTAssertParam(parentNode);
-//  RCTAssertParam(childNode);
-//
-//  [parentNode removeChild:childNode];
-//  [childNode setNeedsUpdate];
-//}
-//
-//- (void)connectAnimatedNodeToView:(nonnull NSNumber *)nodeTag
-//                          viewTag:(nonnull NSNumber *)viewTag
-//                         viewName:(nonnull NSString *)viewName
-//{
-//  REAReanimatedNode *node = _animationNodes[nodeTag];
-//  if ([node isKindOfClass:[RCTPropsAnimatedNode class]]) {
-//    [(RCTPropsAnimatedNode *)node connectToView:viewTag viewName:viewName uiManager:_uiManager];
-//  }
-//  [node setNeedsUpdate];
-//}
-//
+- (void)connectNodes:(nonnull NSNumber *)parentID childID:(nonnull REANodeID)childID
+{
+  RCTAssertParam(parentID);
+  RCTAssertParam(childID);
+
+  REANode *parentNode = _nodes[parentID];
+  REANode *childNode = _nodes[childID];
+
+  RCTAssertParam(parentNode);
+  RCTAssertParam(childNode);
+
+  [parentNode addChild:childNode];
+}
+
+- (void)disconnectNodes:(REANodeID)parentID childID:(REANodeID)childID
+{
+  RCTAssertParam(parentID);
+  RCTAssertParam(childID);
+
+  REANode *parentNode = _nodes[parentID];
+  REANode *childNode = _nodes[childID];
+
+  RCTAssertParam(parentNode);
+  RCTAssertParam(childNode);
+
+  [parentNode removeChild:childNode];
+}
+
+- (void)connectNodeToView:(REANodeID)nodeID
+                  viewTag:(NSNumber *)viewTag
+                 viewName:(NSString *)viewName
+{
+  RCTAssertParam(nodeID);
+  REANode *node = _nodes[nodeID];
+  RCTAssertParam(node);
+
+  if ([node isKindOfClass:[REAPropsNode class]]) {
+    [(REAPropsNode *)node connectToView:viewTag viewName:viewName];
+  }
+}
+
 //- (void)disconnectAnimatedNodeFromView:(nonnull NSNumber *)nodeTag
 //                               viewTag:(nonnull NSNumber *)viewTag
 //{

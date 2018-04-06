@@ -4,6 +4,17 @@ import NativeAnimatedHelper from '../NativeAnimatedHelper';
 
 import flattenStyle from 'flattenStyle';
 
+function sanitizeStyle(inputStyle) {
+  const style = {};
+  for (const key in inputStyle) {
+    const value = inputStyle[key];
+    if (value instanceof AnimatedNode) {
+      style[key] = value.__nodeID;
+    }
+  }
+  return style;
+}
+
 export default class AnimatedStyle extends AnimatedNode {
   constructor(style) {
     style = flattenStyle(style) || {};
@@ -13,7 +24,7 @@ export default class AnimatedStyle extends AnimatedNode {
         transform: new AnimatedTransform(style.transform),
       };
     }
-    super({ type: 'style' }, Object.values(style));
+    super({ type: 'style', style: sanitizeStyle(style) }, Object.values(style));
     this._style = style;
   }
 

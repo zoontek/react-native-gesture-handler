@@ -27,4 +27,7 @@ typedef NSNumber* REANodeID;
 - (void)addChild:(REANode *)child NS_REQUIRES_SUPER;
 - (void)removeChild:(REANode *)child NS_REQUIRES_SUPER;
 
+- (void)dangerouslyRescheduleEvaluate;
+- (void)forceUpdateMemoizedValue:(id)value;
+
 @end

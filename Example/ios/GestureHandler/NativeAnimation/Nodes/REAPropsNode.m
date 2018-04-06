@@ -27,6 +27,7 @@
 {
   _connectedViewTag = viewTag;
   _connectedViewName = viewName;
+  [self dangerouslyRescheduleEvaluate];
 }
 
 - (void)disconnectFromView:(NSNumber *)viewTag

@@ -1,5 +1,4 @@
 import { NativeModules } from 'react-native';
-import NativeAnimatedHelper from '../NativeAnimatedHelper';
 
 const { ReanimatedModule } = NativeModules;
 
@@ -126,16 +125,8 @@ export default class AnimatedNode {
     }
     this.__children.push(child);
     child.__nativeInitialize();
-    // CONNECT!
 
-    // if (this.__isNative) {
-    //   // Only accept "native" animated nodes as children
-    //   child.__makeNative();
-    //   NativeAnimatedHelper.API.connectAnimatedNodes(
-    //     this.__getNativeTag(),
-    //     child.__getNativeTag()
-    //   );
-    // }
+    ReanimatedModule.connectNodes(this.__nodeID, child.__nodeID);
   }
 
   __removeChild(child) {
@@ -144,15 +135,19 @@ export default class AnimatedNode {
       console.warn("Trying to remove a child that doesn't exist");
       return;
     }
-    if (this.__isNative && child.__isNative) {
-      NativeAnimatedHelper.API.disconnectAnimatedNodes(
-        this.__getNativeTag(),
-        child.__getNativeTag()
-      );
-    }
+    ReanimatedModule.disconnectNodes(this.__nodeID, child.__nodeID);
+
     this.__children.splice(index, 1);
     if (this.__children.length === 0) {
       this.__detach();
     }
+  }
+
+  _connectAnimatedView(nativeViewTag) {
+    ReanimatedModule.connectNodeToView(this.__nodeID, nativeViewTag);
+  }
+
+  _disconnectAnimatedView(nativeViewTag) {
+    ReanimatedModule.disconnectNodeToView(this.__nodeID, nativeViewTag);
   }
 }

@@ -25,6 +25,18 @@ static NSUInteger loopID = 1;
 
 RCT_NOT_IMPLEMENTED(- (instancetype)init)
 
+- (void)dangerouslyRescheduleEvaluate
+{
+  _lastLoopID = 0;
+  [self markUpdated];
+}
+
+- (void)forceUpdateMemoizedValue:(id)value
+{
+  _memoizedValue = value;
+  [self markUpdated];
+}
+
 - (id)evaluate
 {
   return 0;

@@ -40,47 +40,46 @@ RCT_EXPORT_MODULE(ReanimatedModule);
 
 #pragma mark -- API
 
-RCT_EXPORT_METHOD(createNode:(nonnull NSNumber *)tag
+RCT_EXPORT_METHOD(createNode:(nonnull NSNumber *)nodeID
                   config:(NSDictionary<NSString *, id> *)config)
 {
   [self addOperationBlock:^(REANodesManager *nodesManager) {
-    [nodesManager createNode:tag config:config];
+    [nodesManager createNode:nodeID config:config];
   }];
 }
 
-RCT_EXPORT_METHOD(dropNode:(nonnull NSNumber *)tag)
+RCT_EXPORT_METHOD(dropNode:(nonnull NSNumber *)nodeID)
 {
   [self addOperationBlock:^(REANodesManager *nodesManager) {
-    [nodesManager dropNode:tag];
+    [nodesManager dropNode:nodeID];
   }];
 }
 
-//RCT_EXPORT_METHOD(connectAnimatedNodes:(nonnull NSNumber *)parentTag
-//                  childTag:(nonnull NSNumber *)childTag)
-//{
-//  [self addOperationBlock:^(REAReanimatedNodesManager *nodesManager) {
-//    [nodesManager connectAnimatedNodes:parentTag childTag:childTag];
-//  }];
-//}
-//
-//RCT_EXPORT_METHOD(disconnectAnimatedNodes:(nonnull NSNumber *)parentTag
-//                  childTag:(nonnull NSNumber *)childTag)
-//{
-//  [self addOperationBlock:^(REAReanimatedNodesManager *nodesManager) {
-//    [nodesManager disconnectAnimatedNodes:parentTag childTag:childTag];
-//  }];
-//}
-//
-//RCT_EXPORT_METHOD(startAnimatingNode:(nonnull NSNumber *)animationId
-//                  nodeTag:(nonnull NSNumber *)nodeTag
-//                  config:(NSDictionary<NSString *, id> *)config
-//                  endCallback:(RCTResponseSenderBlock)callBack)
-//{
-//  [self addOperationBlock:^(REAReanimatedNodesManager *nodesManager) {
-//    [nodesManager startAnimatingNode:animationId nodeTag:nodeTag config:config endCallback:callBack];
-//  }];
-//}
-//
+RCT_EXPORT_METHOD(connectNodes:(nonnull NSNumber *)parentID
+                  childTag:(nonnull NSNumber *)childID)
+{
+  [self addOperationBlock:^(REANodesManager *nodesManager) {
+    [nodesManager connectNodes:parentID childID:childID];
+  }];
+}
+
+RCT_EXPORT_METHOD(disconnectNodes:(nonnull NSNumber *)parentID
+                  childTag:(nonnull NSNumber *)childID)
+{
+  [self addOperationBlock:^(REANodesManager *nodesManager) {
+    [nodesManager disconnectNodes:parentID childID:childID];
+  }];
+}
+
+RCT_EXPORT_METHOD(connectNodeToView:(nonnull NSNumber *)nodeID
+                  viewTag:(nonnull NSNumber *)viewTag)
+{
+  NSString *viewName = [self.bridge.uiManager viewNameForReactTag:viewTag];
+  [self addOperationBlock:^(REANodesManager *nodesManager) {
+    [nodesManager connectNodeToView:nodeID viewTag:viewTag viewName:viewName];
+  }];
+}
+
 //RCT_EXPORT_METHOD(stopAnimation:(nonnull NSNumber *)animationId)
 //{
 //  [self addOperationBlock:^(REAReanimatedNodesManager *nodesManager) {
@@ -118,14 +117,6 @@ RCT_EXPORT_METHOD(dropNode:(nonnull NSNumber *)tag)
 //  }];
 //}
 //
-//RCT_EXPORT_METHOD(connectAnimatedNodeToView:(nonnull NSNumber *)nodeTag
-//                  viewTag:(nonnull NSNumber *)viewTag)
-//{
-//  NSString *viewName = [self.bridge.uiManager viewNameForReactTag:viewTag];
-//  [self addOperationBlock:^(REAReanimatedNodesManager *nodesManager) {
-//    [nodesManager connectAnimatedNodeToView:nodeTag viewTag:viewTag viewName:viewName];
-//  }];
-//}
 //
 //RCT_EXPORT_METHOD(disconnectAnimatedNodeFromView:(nonnull NSNumber *)nodeTag
 //                  viewTag:(nonnull NSNumber *)viewTag)

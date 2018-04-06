@@ -20,11 +20,10 @@
   NSMutableArray<NSDictionary *> *transform = [NSMutableArray arrayWithCapacity:_transformConfigs.count];
   for (NSDictionary *transformConfig in _transformConfigs) {
     NSString *type = transformConfig[@"type"];
-    NSString *property = transformConfig[@"property"];
+    REANodeID nodeID = transformConfig[@"nodeID"];
     NSNumber *value;
-    if ([type isEqualToString: @"animated"]) {
-      REANodeID nodeTag = transformConfig[@"nodeID"];
-      REANode *node = [self.nodesManager findNodeByID:nodeTag];
+    if (nodeID) {
+      REANode *node = [self.nodesManager findNodeByID:nodeID];
       value = [node value];
     } else {
       value = transformConfig[@"value"];

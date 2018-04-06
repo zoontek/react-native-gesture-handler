@@ -1,7 +1,6 @@
 import { AnimatedEvent } from '../AnimatedEvent';
 import AnimatedNode from './AnimatedNode';
 import AnimatedStyle from './AnimatedStyle';
-import NativeAnimatedHelper from '../NativeAnimatedHelper';
 import ReactNative from 'ReactNative';
 
 import invariant from 'fbjs/lib/invariant';
@@ -9,7 +8,7 @@ import invariant from 'fbjs/lib/invariant';
 function sanitizeProps(inputProps) {
   const props = {};
   for (const key in inputProps) {
-    const value = props[key];
+    const value = inputProps[key];
     if (value instanceof AnimatedNode) {
       props[key] = value.__nodeID;
     }
@@ -20,10 +19,7 @@ function sanitizeProps(inputProps) {
 export default class AnimatedProps extends AnimatedNode {
   constructor(props, callback) {
     if (props.style) {
-      props = {
-        ...props,
-        style: new AnimatedStyle(props.style),
-      };
+      props = { ...props, style: new AnimatedStyle(props.style) };
     }
     super({ type: 'props', props: sanitizeProps(props) }, Object.values(props));
     this._props = props;
@@ -61,15 +57,6 @@ export default class AnimatedProps extends AnimatedNode {
     return props;
   }
 
-  __attach() {
-    for (const key in this._props) {
-      const value = this._props[key];
-      if (value instanceof AnimatedNode) {
-        value.__addChild(this);
-      }
-    }
-  }
-
   __getParams() {
     const params = [];
     for (const key in this._props) {
@@ -82,15 +69,12 @@ export default class AnimatedProps extends AnimatedNode {
   }
 
   __detach() {
-    if (this.__isNative && this._animatedView) {
-      this.__disconnectAnimatedView();
-    }
-    for (const key in this._props) {
-      const value = this._props[key];
-      if (value instanceof AnimatedNode) {
-        value.__removeChild(this);
-      }
-    }
+    const nativeViewTag = ReactNative.findNodeHandle(this._animatedView);
+    invariant(
+      nativeViewTag != null,
+      'Unable to locate attached view in the native tree'
+    );
+    this._disconnectAnimatedView(nativeViewTag);
     super.__detach();
   }
 
@@ -98,68 +82,17 @@ export default class AnimatedProps extends AnimatedNode {
     this._callback();
   }
 
-  __makeNative() {
-    if (!this.__isNative) {
-      this.__isNative = true;
-      for (const key in this._props) {
-        const value = this._props[key];
-        if (value instanceof AnimatedNode) {
-          value.__makeNative();
-        }
-      }
-      if (this._animatedView) {
-        this.__connectAnimatedView();
-      }
-    }
-  }
-
   setNativeView(animatedView) {
     if (this._animatedView === animatedView) {
       return;
     }
     this._animatedView = animatedView;
-    if (this.__isNative) {
-      this.__connectAnimatedView();
-    }
-  }
 
-  __connectAnimatedView() {
-    invariant(this.__isNative, 'Expected node to be marked as "native"');
     const nativeViewTag = ReactNative.findNodeHandle(this._animatedView);
     invariant(
       nativeViewTag != null,
       'Unable to locate attached view in the native tree'
     );
-    NativeAnimatedHelper.API.connectAnimatedNodeToView(
-      this.__getNativeTag(),
-      nativeViewTag
-    );
-  }
-
-  __disconnectAnimatedView() {
-    invariant(this.__isNative, 'Expected node to be marked as "native"');
-    const nativeViewTag = ReactNative.findNodeHandle(this._animatedView);
-    invariant(
-      nativeViewTag != null,
-      'Unable to locate attached view in the native tree'
-    );
-    NativeAnimatedHelper.API.disconnectAnimatedNodeFromView(
-      this.__getNativeTag(),
-      nativeViewTag
-    );
-  }
-
-  __getNativeConfig() {
-    const propsConfig = {};
-    for (const propKey in this._props) {
-      const value = this._props[propKey];
-      if (value instanceof AnimatedNode) {
-        propsConfig[propKey] = value.__getNativeTag();
-      }
-    }
-    return {
-      type: 'props',
-      props: propsConfig,
-    };
+    this._connectAnimatedView(nativeViewTag);
   }
 }

@@ -1,10 +1,30 @@
 import AnimatedNode from './AnimatedNode';
 import NativeAnimatedHelper from '../NativeAnimatedHelper';
 
-function extractAnimatedParentNodes(transforms) {
+function sanitizeTransform(inputTransform) {
+  const outputTransform = [];
+  inputTransform.forEach(transform => {
+    for (const key in transform) {
+      const value = transform[key];
+      if (value instanceof AnimatedNode) {
+        outputTransform.push({
+          property: key,
+          nodeID: value.__nodeID,
+        });
+      } else {
+        outputTransform.push({
+          property: key,
+          value,
+        });
+      }
+    }
+  });
+  return outputTransform;
+}
+
+function extractAnimatedParentNodes(transform) {
   const parents = [];
-  transforms.forEach(transform => {
-    const result = {};
+  transform.forEach(transform => {
     for (const key in transform) {
       const value = transform[key];
       if (value instanceof AnimatedNode) {
@@ -16,25 +36,16 @@ function extractAnimatedParentNodes(transforms) {
 }
 
 export default class AnimatedTransform extends AnimatedNode {
-  constructor(transforms) {
-    super({ type: 'transform' }, extractAnimatedParentNodes(transforms));
-    this._transforms = transforms;
-  }
-
-  __makeNative() {
-    super.__makeNative();
-    this._transforms.forEach(transform => {
-      for (const key in transform) {
-        const value = transform[key];
-        if (value instanceof AnimatedNode) {
-          value.__makeNative();
-        }
-      }
-    });
+  constructor(transform) {
+    super(
+      { type: 'transform', transform: sanitizeTransform(transform) },
+      extractAnimatedParentNodes(transform)
+    );
+    this._transform = transform;
   }
 
   __getProps() {
-    return this._transforms.map(transform => {
+    return this._transform.map(transform => {
       const result = {};
       for (const key in transform) {
         const value = transform[key];
@@ -49,7 +60,7 @@ export default class AnimatedTransform extends AnimatedNode {
   }
 
   __onEvaluate() {
-    return this._transforms.map(transform => {
+    return this._transform.map(transform => {
       const result = {};
       for (const key in transform) {
         const value = transform[key];
@@ -59,34 +70,5 @@ export default class AnimatedTransform extends AnimatedNode {
       }
       return result;
     });
-  }
-
-  __getNativeConfig() {
-    const transConfigs = [];
-
-    this._transforms.forEach(transform => {
-      for (const key in transform) {
-        const value = transform[key];
-        if (value instanceof AnimatedNode) {
-          transConfigs.push({
-            type: 'animated',
-            property: key,
-            nodeTag: value.__getNativeTag(),
-          });
-        } else {
-          transConfigs.push({
-            type: 'static',
-            property: key,
-            value,
-          });
-        }
-      }
-    });
-
-    NativeAnimatedHelper.validateTransform(transConfigs);
-    return {
-      type: 'transform',
-      transforms: transConfigs,
-    };
   }
 }
