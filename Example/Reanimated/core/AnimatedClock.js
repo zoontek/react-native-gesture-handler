@@ -5,7 +5,7 @@ class AnimatedMainClock extends AnimatedValue {
   _frameCallback;
 
   constructor() {
-    super(0);
+    super({ type: 'MAIN_CLOCK' });
   }
 
   __onEvaluate() {
@@ -40,6 +40,10 @@ const mainClock = new AnimatedMainClock();
 export default class AnimatedClock extends AnimatedValue {
   _started;
   _attached;
+
+  constructor() {
+    super({ type: 'clock' });
+  }
 
   __onEvaluate() {
     return val(mainClock);

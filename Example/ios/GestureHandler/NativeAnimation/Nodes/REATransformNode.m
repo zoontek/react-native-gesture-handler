@@ -1,50 +1,39 @@
 #import "REATransformNode.h"
 
+#import "REANodesManager.h"
+
 @implementation REATransformNode
 {
-  NSMutableDictionary<NSString *, NSObject *> *_propsDictionary;
+  NSArray<id> *_transformConfigs;
 }
 
-- (instancetype)initWithID:(NSNumber *)nodeID
-                     config:(NSDictionary<NSString *, id> *)config;
+- (instancetype)initWithID:(REANodeID)nodeID config:(NSDictionary<NSString *,id> *)config
 {
   if ((self = [super initWithID:nodeID config:config])) {
-    _propsDictionary = [NSMutableDictionary new];
+    _transformConfigs = config[@"transform"];
   }
   return self;
 }
 
-- (NSDictionary *)propsDictionary
+- (id)evaluate
 {
-  return _propsDictionary;
-}
+  NSMutableArray<NSDictionary *> *transform = [NSMutableArray arrayWithCapacity:_transformConfigs.count];
+  for (NSDictionary *transformConfig in _transformConfigs) {
+    NSString *type = transformConfig[@"type"];
+    NSString *property = transformConfig[@"property"];
+    NSNumber *value;
+    if ([type isEqualToString: @"animated"]) {
+      REANodeID nodeTag = transformConfig[@"nodeID"];
+      REANode *node = [self.nodesManager findNodeByID:nodeTag];
+      value = [node value];
+    } else {
+      value = transformConfig[@"value"];
+    }
+    [transform addObject:@{property: value}];
+  }
 
-//- (void)performUpdate
-//{
-//  [super performUpdate];
-//
-//  NSArray<NSDictionary *> *transformConfigs = self.config[@"transforms"];
-//  NSMutableArray<NSDictionary *> *transform = [NSMutableArray arrayWithCapacity:transformConfigs.count];
-//  for (NSDictionary *transformConfig in transformConfigs) {
-//    NSString *type = transformConfig[@"type"];
-//    NSString *property = transformConfig[@"property"];
-//    NSNumber *value;
-//    if ([type isEqualToString: @"animated"]) {
-//      NSNumber *nodeTag = transformConfig[@"nodeTag"];
-//      RCTAnimatedNode *node = [self.parentNodes objectForKey:nodeTag];
-//      if (![node isKindOfClass:[RCTValueAnimatedNode class]]) {
-//        continue;
-//      }
-//      RCTValueAnimatedNode *parentNode = (RCTValueAnimatedNode *)node;
-//      value = @(parentNode.value);
-//    } else {
-//      value = transformConfig[@"value"];
-//    }
-//    [transform addObject:@{property: value}];
-//  }
-//
-//  _propsDictionary[@"transform"] = transform;
-//}
+  return transform;
+}
 
 @end
 

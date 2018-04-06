@@ -200,8 +200,6 @@ RCT_EXPORT_METHOD(dropNode:(nonnull NSNumber *)tag)
     for (AnimatedOperation operation in operations) {
       operation(self->_nodesManager);
     }
-
-    [self->_nodesManager updateAnimations];
   }];
 }
 

@@ -2,6 +2,8 @@
 
 #import <React/RCTConvert.h>
 
+#import "Nodes/REANode.h"
+#import "Nodes/REAPropsNode.h"
 #import "Nodes/REAStyleNode.h"
 #import "Nodes/REATransformNode.h"
 #import "Nodes/REAValueNode.h"
@@ -23,8 +25,7 @@
 
 @implementation REANodesManager
 {
-  __weak RCTUIManager *_uiManager;
-  NSMutableDictionary<NSNumber *, REANode *> *_nodes;
+  NSMutableDictionary<REANodeID, REANode *> *_nodes;
   // Mapping of a view tag and an event name to a list of event animation drivers. 99% of the time
   // there will be only one driver per mapping so all code code should be optimized around that.
 //  NSMutableDictionary<NSString *, NSMutableArray<RCTEventAnimation *> *> *_eventDrivers;
@@ -45,15 +46,16 @@
 
 #pragma mark -- Graph
 
-- (void)createNode:(nonnull NSNumber *)nodeID
+- (void)createNode:(REANodeID)nodeID
             config:(NSDictionary<NSString *, id> *)config
 {
   static NSDictionary *map;
   static dispatch_once_t mapToken;
   dispatch_once(&mapToken, ^{
-      map = @{@"style" : [REAStyleNode class],
-              @"transform" : [REATransformNode class],
-              @"value" : [REAValueNode class]};
+    map = @{@"props": [REAPropsNode class],
+            @"style" : [REAStyleNode class],
+            @"transform" : [REATransformNode class],
+            @"value" : [REAValueNode class]};
 //            @"props" : [RCTPropsAnimatedNode class],
 //            @"interpolation" : [RCTInterpolationAnimatedNode class],
 //            @"addition" : [RCTAdditionAnimatedNode class],
@@ -73,11 +75,12 @@
   }
 
   REANode *node = [[nodeClass alloc] initWithID:nodeID config:config];
+  node.nodesManager = self;
   _nodes[nodeID] = node;
 //  [node setNeedsUpdate];
 }
 
-- (void)dropNode:(nonnull NSNumber *)nodeID
+- (void)dropNode:(REANodeID)nodeID
 {
   REANode *node = _nodes[nodeID];
   if (node) {
@@ -367,22 +370,20 @@
 //}
 //
 //
-//#pragma mark -- Animation Loop
-//
-//- (void)startAnimationLoopIfNeeded
-//{
-//  if (!_displayLink && _activeAnimations.count > 0) {
-//    _displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(stepAnimations:)];
-//    [_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
-//  }
-//}
-//
-//- (void)stopAnimationLoopIfNeeded
-//{
-//  if (_activeAnimations.count == 0) {
-//    [self stopAnimationLoop];
-//  }
-//}
+#pragma mark -- Animation Loop
+
+- (void)startAnimationLoopIfNeeded
+{
+  if (!_displayLink) {
+    _displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(onFrame:)];
+    [_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+  }
+}
+
+- (void)stopAnimationLoopIfNeeded
+{
+
+}
 
 - (void)stopAnimationLoop
 {
@@ -390,6 +391,11 @@
     [_displayLink invalidate];
     _displayLink = nil;
   }
+}
+
+- (void)onFrame:(CADisplayLink *)displayLink
+{
+  [self stopAnimationLoopIfNeeded];
 }
 
 //- (void)stepAnimations:(CADisplayLink *)displaylink

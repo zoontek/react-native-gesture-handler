@@ -6,15 +6,26 @@ import ReactNative from 'ReactNative';
 
 import invariant from 'fbjs/lib/invariant';
 
+function sanitizeProps(inputProps) {
+  const props = {};
+  for (const key in inputProps) {
+    const value = props[key];
+    if (value instanceof AnimatedNode) {
+      props[key] = value.__nodeID;
+    }
+  }
+  return props;
+}
+
 export default class AnimatedProps extends AnimatedNode {
   constructor(props, callback) {
-    super();
     if (props.style) {
       props = {
         ...props,
         style: new AnimatedStyle(props.style),
       };
     }
+    super({ type: 'props', props: sanitizeProps(props) }, Object.values(props));
     this._props = props;
     this._callback = callback;
     this.__attach();

@@ -8,13 +8,11 @@
 
 @implementation REAValueNode
 
-@synthesize value = _value;
-
-- (instancetype)initWithID:(NSNumber *)nodeID
-                     config:(NSDictionary<NSString *, id> *)config
+- (instancetype)initWithID:(REANodeID)nodeID
+                    config:(NSDictionary<NSString *, id> *)config
 {
     if (self = [super initWithID:nodeID config:config]) {
-        _offset = [self.config[@"offset"] floatValue];
+        _offset = [config[@"offset"] floatValue];
 //        _value = [self.config[@"value"] floatValue];
     }
     return self;

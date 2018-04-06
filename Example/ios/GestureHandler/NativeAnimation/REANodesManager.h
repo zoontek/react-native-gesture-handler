@@ -1,10 +1,12 @@
 #import <Foundation/Foundation.h>
 
-#import "REAValueNode.h"
+#import "REANode.h"
 #import <React/RCTBridgeModule.h>
 #import <React/RCTUIManager.h>
 
 @interface REANodesManager : NSObject
+
+@property (nonatomic, weak, nullable) RCTUIManager *uiManager;
 
 - (nonnull instancetype)initWithUIManager:(nonnull RCTUIManager *)uiManager;
 
@@ -12,12 +14,14 @@
 
 - (void)stepAnimations:(nonnull CADisplayLink *)displaylink;
 
+- (REANode* _Nullable)findNodeByID:(nonnull REANodeID)nodeID;
+
 // graph
 
-- (void)createNode:(nonnull NSNumber *)tag
+- (void)createNode:(nonnull REANodeID)tag
             config:(NSDictionary<NSString *, id> *__nonnull)config;
 
-- (void)dropNode:(nonnull NSNumber *)tag;
+- (void)dropNode:(nonnull REANodeID)tag;
 
 //- (void)connectAnimatedNodes:(nonnull NSNumber *)parentTag
 //                    childTag:(nonnull NSNumber *)childTag;
