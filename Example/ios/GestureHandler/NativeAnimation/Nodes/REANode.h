@@ -23,6 +23,7 @@ typedef NSNumber* REANodeID;
 
 - (_Nullable id)evaluate;
 - (_Nullable id)value;
+- (void)markUpdated;
 
 - (void)addChild:(REANode *)child NS_REQUIRES_SUPER;
 - (void)removeChild:(REANode *)child NS_REQUIRES_SUPER;

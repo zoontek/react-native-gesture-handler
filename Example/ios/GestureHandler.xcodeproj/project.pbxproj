@@ -32,6 +32,8 @@
 		447781C320763EB000B4D8C9 /* REATransformNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 447781C220763EB000B4D8C9 /* REATransformNode.m */; };
 		447781C520763FEA00B4D8C9 /* REAValueNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 447781C420763FEA00B4D8C9 /* REAValueNode.m */; };
 		447781C8207693D100B4D8C9 /* REAPropsNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 447781C7207693D100B4D8C9 /* REAPropsNode.m */; };
+		447781CB207B5C8400B4D8C9 /* REABlockNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 447781CA207B5C8400B4D8C9 /* REABlockNode.m */; };
+		447781CE207B60F300B4D8C9 /* REACondNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 447781CD207B60F300B4D8C9 /* REACondNode.m */; };
 		4486EC712076263F008A0135 /* REANodesManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 4486EC5F2076263F008A0135 /* REANodesManager.m */; };
 		4486EC722076263F008A0135 /* REAModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 4486EC602076263F008A0135 /* REAModule.m */; };
 		4486EC762076340F008A0135 /* REAStyleNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 4486EC752076340F008A0135 /* REAStyleNode.m */; };
@@ -335,6 +337,10 @@
 		447781C420763FEA00B4D8C9 /* REAValueNode.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = REAValueNode.m; sourceTree = "<group>"; };
 		447781C6207693C300B4D8C9 /* REAPropsNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = REAPropsNode.h; sourceTree = "<group>"; };
 		447781C7207693D100B4D8C9 /* REAPropsNode.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = REAPropsNode.m; sourceTree = "<group>"; };
+		447781C9207B5C7900B4D8C9 /* REABlockNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = REABlockNode.h; sourceTree = "<group>"; };
+		447781CA207B5C8400B4D8C9 /* REABlockNode.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = REABlockNode.m; sourceTree = "<group>"; };
+		447781CC207B60E800B4D8C9 /* REACondNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = REACondNode.h; sourceTree = "<group>"; };
+		447781CD207B60F300B4D8C9 /* REACondNode.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = REACondNode.m; sourceTree = "<group>"; };
 		4486EC442076263F008A0135 /* RCTReanimatedNodesManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RCTReanimatedNodesManager.h; sourceTree = "<group>"; };
 		4486EC452076263F008A0135 /* RCTAnimationUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RCTAnimationUtils.h; sourceTree = "<group>"; };
 		4486EC472076263F008A0135 /* REAValueNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = REAValueNode.h; sourceTree = "<group>"; };
@@ -559,6 +565,10 @@
 				447781C220763EB000B4D8C9 /* REATransformNode.m */,
 				447781C6207693C300B4D8C9 /* REAPropsNode.h */,
 				447781C7207693D100B4D8C9 /* REAPropsNode.m */,
+				447781C9207B5C7900B4D8C9 /* REABlockNode.h */,
+				447781CA207B5C8400B4D8C9 /* REABlockNode.m */,
+				447781CC207B60E800B4D8C9 /* REACondNode.h */,
+				447781CD207B60F300B4D8C9 /* REACondNode.m */,
 			);
 			path = Nodes;
 			sourceTree = "<group>";
@@ -1047,10 +1057,12 @@
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				447781CE207B60F300B4D8C9 /* REACondNode.m in Sources */,
 				4486EC712076263F008A0135 /* REANodesManager.m in Sources */,
 				447781C520763FEA00B4D8C9 /* REAValueNode.m in Sources */,
 				444DA3621F223F3F00AA9BCA /* MBFingerTipWindow.m in Sources */,
 				4486EC762076340F008A0135 /* REAStyleNode.m in Sources */,
+				447781CB207B5C8400B4D8C9 /* REABlockNode.m in Sources */,
 				4486EC722076263F008A0135 /* REAModule.m in Sources */,
 				447781C8207693D100B4D8C9 /* REAPropsNode.m in Sources */,
 				4477819B20763D8000B4D8C9 /* REANode.m in Sources */,

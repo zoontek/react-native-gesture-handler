@@ -19,7 +19,7 @@
 {
   NSMutableArray<NSDictionary *> *transform = [NSMutableArray arrayWithCapacity:_transformConfigs.count];
   for (NSDictionary *transformConfig in _transformConfigs) {
-    NSString *type = transformConfig[@"type"];
+    NSString *property = transformConfig[@"property"];
     REANodeID nodeID = transformConfig[@"nodeID"];
     NSNumber *value;
     if (nodeID) {

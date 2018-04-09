@@ -7,6 +7,8 @@
 #import "Nodes/REAStyleNode.h"
 #import "Nodes/REATransformNode.h"
 #import "Nodes/REAValueNode.h"
+#import "Nodes/REABlockNode.h"
+#import "Nodes/REACondNode.h"
 //#import "REAReanimatedNode.h"
 //#import "RCTAnimationDriver.h"
 //#import "RCTDiffClampAnimatedNode.h"
@@ -38,10 +40,16 @@
   if ((self = [super init])) {
     _uiManager = uiManager;
     _nodes = [NSMutableDictionary new];
+    [self startAnimationLoopIfNeeded];
 //    _eventDrivers = [NSMutableDictionary new];
 //    _activeAnimations = [NSMutableSet new];
   }
   return self;
+}
+
+- (REANode *)findNodeByID:(REANodeID)nodeID
+{
+  return _nodes[nodeID];
 }
 
 #pragma mark -- Graph
@@ -53,9 +61,12 @@
   static dispatch_once_t mapToken;
   dispatch_once(&mapToken, ^{
     map = @{@"props": [REAPropsNode class],
-            @"style" : [REAStyleNode class],
-            @"transform" : [REATransformNode class],
-            @"value" : [REAValueNode class]};
+            @"style": [REAStyleNode class],
+            @"transform": [REATransformNode class],
+            @"value": [REAValueNode class],
+            @"block": [REABlockNode class],
+            @"cond": [REACondNode class]
+            };
   });
 
   NSString *nodeType = [RCTConvert NSString:config[@"type"]];
@@ -384,7 +395,8 @@
 
 - (void)onFrame:(CADisplayLink *)displayLink
 {
-  [self stopAnimationLoopIfNeeded];
+  [REANode runPropUpdates];
+//  [self stopAnimationLoopIfNeeded];
 }
 
 //- (void)stepAnimations:(CADisplayLink *)displaylink

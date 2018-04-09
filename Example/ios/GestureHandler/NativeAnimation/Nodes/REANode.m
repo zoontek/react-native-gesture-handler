@@ -8,7 +8,7 @@ static NSUInteger loopID = 1;
 
 @property (nonatomic) NSUInteger lastLoopID;
 @property (nonatomic) id memoizedValue;
-@property (nonatomic, copy, readonly) NSMapTable<REANodeID, REANode *> *childNodes;
+@property (nonatomic, nullable) NSMutableArray<REANode *> *childNodes;
 
 @end
 
@@ -54,21 +54,18 @@ RCT_NOT_IMPLEMENTED(- (instancetype)init)
 - (void)addChild:(REANode *)child
 {
   if (!_childNodes) {
-    _childNodes = [NSMapTable strongToWeakObjectsMapTable];
+    _childNodes = [NSMutableArray new];
   }
   if (child) {
-    [_childNodes setObject:child forKey:child.nodeID];
-    child.lastLoopID = 0;
+    [_childNodes addObject:child];
+    [self dangerouslyRescheduleEvaluate];
   }
 }
 
 - (void)removeChild:(REANode *)child
 {
-  if (!_childNodes) {
-    return;
-  }
   if (child) {
-    [_childNodes removeObjectForKey:child.nodeID];
+    [_childNodes removeObject:child];
   }
 }
 
@@ -101,7 +98,7 @@ RCT_NOT_IMPLEMENTED(- (instancetype)init)
     if ([node respondsToSelector:@selector(update)]) {
       [(id)node update];
     } else {
-      for (REANode *child in [node childNodes]) {
+      for (REANode *child in node.childNodes) {
         weak_FindAndUpdateNodes(child);
       }
     }
