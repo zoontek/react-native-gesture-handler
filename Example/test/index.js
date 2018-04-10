@@ -62,7 +62,9 @@ export default class Example extends Component {
 
     // const transX = new Value(0);
     // const clock = new Clock();
-    this._transX = new Value(100); // runSpring(clock, transX, 150);
+    const twenty = new Value(20);
+    const thirty = new Value(30);
+    this._transX = cond(new Value(0), twenty, multiply(3, thirty));
   }
   componentDidMount() {
     // Animated.spring(this._transX, {

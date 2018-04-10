@@ -9,21 +9,7 @@
 #import "Nodes/REAValueNode.h"
 #import "Nodes/REABlockNode.h"
 #import "Nodes/REACondNode.h"
-//#import "REAReanimatedNode.h"
-//#import "RCTAnimationDriver.h"
-//#import "RCTDiffClampAnimatedNode.h"
-//#import "RCTDivisionAnimatedNode.h"
-//#import "RCTEventAnimation.h"
-//#import "RCTFrameAnimation.h"
-//#import "RCTDecayAnimation.h"
-//#import "RCTInterpolationAnimatedNode.h"
-//#import "RCTModuloAnimatedNode.h"
-//#import "RCTMultiplicationAnimatedNode.h"
-//#import "RCTPropsAnimatedNode.h"
-//#import "RCTSpringAnimation.h"
-//#import "RCTStyleAnimatedNode.h"
-//#import "RCTTransformAnimatedNode.h"
-//#import "RCTValueAnimatedNode.h"
+#import "Nodes/REAOperatorNode.h"
 
 @implementation REANodesManager
 {
@@ -65,7 +51,8 @@
             @"transform": [REATransformNode class],
             @"value": [REAValueNode class],
             @"block": [REABlockNode class],
-            @"cond": [REACondNode class]
+            @"cond": [REACondNode class],
+            @"op": [REAOperatorNode class],
             };
   });
 

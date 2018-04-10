@@ -53,7 +53,10 @@ export default class AnimatedOperator extends AnimatedNode {
   _operation;
 
   constructor(operator, input) {
-    super({ type: 'op', op: operator }, input);
+    super(
+      { type: 'op', op: operator, input: input.map(n => n.__nodeID) },
+      input
+    );
     this._op = operator;
     this._input = input;
   }

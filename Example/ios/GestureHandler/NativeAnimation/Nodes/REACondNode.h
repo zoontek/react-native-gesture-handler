@@ -3,6 +3,3 @@
 @interface REACondNode : REANode
 
 @end
-
-
-
