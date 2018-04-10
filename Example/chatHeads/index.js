@@ -3,7 +3,7 @@ import { Animated, StyleSheet, View } from 'react-native';
 
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 
-const USE_NATIVE_DRIVER = false;
+const USE_NATIVE_DRIVER = true;
 
 // setInterval(() => {
 //   let iters = 1e8, sum = 0;
