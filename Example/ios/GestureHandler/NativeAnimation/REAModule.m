@@ -14,7 +14,7 @@ RCT_EXPORT_MODULE(ReanimatedModule);
 
 - (void)invalidate
 {
-  [_nodesManager stopAnimationLoop];
+  [_nodesManager invalidate];
   [self.bridge.eventDispatcher removeDispatchObserver:self];
   [self.bridge.uiManager.observerCoordinator removeObserver:self];
 }

@@ -40,6 +40,11 @@
   return self;
 }
 
+- (void)invalidate
+{
+  [self stopUpdatingOnAnimationFrame];
+}
+
 - (REANode *)findNodeByID:(REANodeID)nodeID
 {
   return _nodes[nodeID];

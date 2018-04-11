@@ -15,6 +15,8 @@ typedef void (^REAAfterAnimationCallback)();
 
 - (REANode* _Nullable)findNodeByID:(nonnull REANodeID)nodeID;
 
+- (void)invalidate;
+
 //
 
 - (void)postOnAnimation:(REAOnAnimationCallback)clb;

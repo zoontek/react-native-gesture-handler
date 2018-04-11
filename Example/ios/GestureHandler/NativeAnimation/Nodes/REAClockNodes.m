@@ -4,7 +4,7 @@
 @interface REAClockNode ()
 
 @property (nonatomic, readonly) BOOL isRunning;
-@property (nonatomic) CFTimeInterval lastTimestamp;
+@property (nonatomic) NSNumber *lastTimestampMs;
 
 @end
 
@@ -23,7 +23,7 @@
 
   weak_animationClb = animationClb = ^(CADisplayLink *displayLink) {
     if (!weakSelf.isRunning) return;
-    weakSelf.lastTimestamp = displayLink.timestamp;
+    weakSelf.lastTimestampMs = @(displayLink.timestamp * 1000.);
     [weakSelf markUpdated];
     [weakSelf.nodesManager postOnAnimation:weak_animationClb];
   };
@@ -38,7 +38,7 @@
 
 - (id)evaluate
 {
-  return @(_lastTimestamp);
+  return _lastTimestampMs;
 }
 
 @end
@@ -67,7 +67,7 @@
 - (id)evaluate
 {
   [[self clockNode] start];
-  return 0;
+  return @(0);
 }
 
 @end
@@ -77,7 +77,7 @@
 - (id)evaluate
 {
   [[self clockNode] stop];
-  return 0;
+  return @(0);
 }
 
 @end
