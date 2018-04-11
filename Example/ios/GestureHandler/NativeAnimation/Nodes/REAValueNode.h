@@ -6,6 +6,6 @@
 
 @interface REAValueNode : REANode
 
-@property (nonatomic, nonnull) NSNumber *value;
+- (void)setValue:(NSNumber *)value;
 
 @end

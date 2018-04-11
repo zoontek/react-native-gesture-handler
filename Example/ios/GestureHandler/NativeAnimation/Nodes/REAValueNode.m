@@ -1,6 +1,8 @@
 #import "REAValueNode.h"
 
-@implementation REAValueNode
+@implementation REAValueNode {
+  NSNumber *_value;
+}
 
 - (instancetype)initWithID:(REANodeID)nodeID
                     config:(NSDictionary<NSString *, id> *)config

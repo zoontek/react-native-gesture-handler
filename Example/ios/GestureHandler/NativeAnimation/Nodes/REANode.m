@@ -1,4 +1,5 @@
 #import "REANode.h"
+#import "REANodesManager.h"
 
 #import <React/RCTDefines.h>
 
@@ -72,6 +73,11 @@ RCT_NOT_IMPLEMENTED(- (instancetype)init)
 - (void)markUpdated
 {
   [[REANode updatedNodes] addObject:self];
+  if ([REANode updatedNodes].count == 1) {
+    [self.nodesManager postAfterAnimation:^{
+      [REANode runPropUpdates];
+    }];
+  }
 }
 
 + (NSMutableArray<REANode *> *)updatedNodes

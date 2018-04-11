@@ -6,12 +6,14 @@ export default class AnimatedDebug extends AnimatedNode {
   _value;
 
   constructor(message, value) {
-    super({ type: 'debug', message }, [value]);
+    super({ type: 'debug', message, value: value.__nodeID }, [value]);
     this._message = message;
     this._value = value;
   }
 
   __onEvaluate() {
-    console.log(this._message, val(this._value));
+    const value = val(this._value);
+    console.log(this._message, value);
+    return value;
   }
 }

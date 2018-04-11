@@ -4,17 +4,21 @@
 #import <React/RCTBridgeModule.h>
 #import <React/RCTUIManager.h>
 
+typedef void (^REAOnAnimationCallback)(CADisplayLink *displayLink);
+typedef void (^REAAfterAnimationCallback)();
+
 @interface REANodesManager : NSObject
 
 @property (nonatomic, weak, nullable) RCTUIManager *uiManager;
 
 - (nonnull instancetype)initWithUIManager:(nonnull RCTUIManager *)uiManager;
 
-- (void)updateAnimations;
-
-- (void)stepAnimations:(nonnull CADisplayLink *)displaylink;
-
 - (REANode* _Nullable)findNodeByID:(nonnull REANodeID)nodeID;
+
+//
+
+- (void)postOnAnimation:(REAOnAnimationCallback)clb;
+- (void)postAfterAnimation:(REAAfterAnimationCallback)clb;
 
 // graph
 

@@ -1,4 +1,5 @@
 import AnimatedValue from './AnimatedValue';
+import AnimatedNode from './AnimatedNode';
 import { val } from '../utils';
 
 class AnimatedMainClock extends AnimatedValue {
@@ -37,7 +38,7 @@ class AnimatedMainClock extends AnimatedValue {
 
 const mainClock = new AnimatedMainClock();
 
-export default class AnimatedClock extends AnimatedValue {
+export default class AnimatedClock extends AnimatedNode {
   _started;
   _attached;
 

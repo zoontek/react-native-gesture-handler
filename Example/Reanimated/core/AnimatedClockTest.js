@@ -6,7 +6,7 @@ export default class AnimatedClockTest extends AnimatedNode {
   _clockNode;
 
   constructor(clockNode) {
-    super();
+    super({ type: 'clockTest', clock: clockNode.__nodeID });
     invariant(
       clockNode instanceof AnimatedClock,
       'Node is not of an AnimatedClock type'

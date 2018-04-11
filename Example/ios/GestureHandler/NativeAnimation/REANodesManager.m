@@ -10,6 +10,9 @@
 #import "Nodes/REABlockNode.h"
 #import "Nodes/REACondNode.h"
 #import "Nodes/REAOperatorNode.h"
+#import "Nodes/REASetNode.h"
+#import "Nodes/READebugNode.h"
+#import "Nodes/REAClockNodes.h"
 
 @implementation REANodesManager
 {
@@ -19,6 +22,8 @@
 //  NSMutableDictionary<NSString *, NSMutableArray<RCTEventAnimation *> *> *_eventDrivers;
 //  NSMutableSet<id<RCTAnimationDriver>> *_activeAnimations;
   CADisplayLink *_displayLink;
+  NSMutableArray<REAAfterAnimationCallback> *_afterAnimationCallbacks;
+  NSMutableArray<REAOnAnimationCallback> *_onAnimationCallbacks;
 }
 
 - (instancetype)initWithUIManager:(nonnull RCTUIManager *)uiManager
@@ -26,7 +31,9 @@
   if ((self = [super init])) {
     _uiManager = uiManager;
     _nodes = [NSMutableDictionary new];
-    [self startAnimationLoopIfNeeded];
+    _onAnimationCallbacks = [NSMutableArray new];
+    _afterAnimationCallbacks = [NSMutableArray new];
+//    [self startAnimationLoopIfNeeded];
 //    _eventDrivers = [NSMutableDictionary new];
 //    _activeAnimations = [NSMutableSet new];
   }
@@ -36,6 +43,57 @@
 - (REANode *)findNodeByID:(REANodeID)nodeID
 {
   return _nodes[nodeID];
+}
+
+- (void)postOnAnimation:(REAOnAnimationCallback)clb
+{
+  [_onAnimationCallbacks addObject:clb];
+}
+
+- (void)postAfterAnimation:(REAAfterAnimationCallback)clb
+{
+  [_afterAnimationCallbacks addObject:clb];
+  [self startUpdatingOnAnimationFrame];
+}
+
+- (void)startUpdatingOnAnimationFrame
+{
+  if (!_displayLink) {
+    _displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(onAnimationFrame:)];
+    [_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+  }
+}
+
+- (void)stopUpdatingOnAnimationFrame
+{
+  if (_displayLink) {
+    [_displayLink invalidate];
+    _displayLink = nil;
+  }
+}
+
+- (void)onAnimationFrame:(CADisplayLink *)displayLink
+{
+  NSArray<REAOnAnimationCallback> *callbacks = _onAnimationCallbacks;
+  _onAnimationCallbacks = [NSMutableArray new];
+
+  // When one of the callbacks would postOnAnimation callback we don't want
+  // to process it until the next frame. This is why we cpy the array before
+  // we iterate over it
+  for (REAOnAnimationCallback block in callbacks) {
+    block(displayLink);
+  }
+
+  // new items can be added to the _afterANimationCallback array during the
+  // loop by the enqueued callbacks. In that case we want to run them immediately
+  // and clear after animation queue once all the callbacks are done
+  for (NSUInteger i = 0; i < _afterAnimationCallbacks.count; i++) {
+    _afterAnimationCallbacks[i]();
+  }
+
+  if (_onAnimationCallbacks.count == 0) {
+    [self stopUpdatingOnAnimationFrame];
+  }
 }
 
 #pragma mark -- Graph
@@ -53,6 +111,12 @@
             @"block": [REABlockNode class],
             @"cond": [REACondNode class],
             @"op": [REAOperatorNode class],
+            @"set": [REASetNode class],
+            @"debug": [READebugNode class],
+            @"clock": [REAClockNode class],
+            @"clockStart": [REAClockStartNode class],
+            @"clockStop": [REAClockStopNode class],
+            @"clockTest": [REAClockTestNode class],
             };
   });
 
@@ -359,32 +423,32 @@
 //
 #pragma mark -- Animation Loop
 
-- (void)startAnimationLoopIfNeeded
-{
-  if (!_displayLink) {
-    _displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(onFrame:)];
-    [_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
-  }
-}
-
-- (void)stopAnimationLoopIfNeeded
-{
-
-}
-
-- (void)stopAnimationLoop
-{
-  if (_displayLink) {
-    [_displayLink invalidate];
-    _displayLink = nil;
-  }
-}
-
-- (void)onFrame:(CADisplayLink *)displayLink
-{
-  [REANode runPropUpdates];
-//  [self stopAnimationLoopIfNeeded];
-}
+//- (void)startAnimationLoopIfNeeded
+//{
+//  if (!_displayLink) {
+//    _displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(onFrame:)];
+//    [_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+//  }
+//}
+//
+//- (void)stopAnimationLoopIfNeeded
+//{
+//
+//}
+//
+//- (void)stopAnimationLoop
+//{
+//  if (_displayLink) {
+//    [_displayLink invalidate];
+//    _displayLink = nil;
+//  }
+//}
+//
+//- (void)onFrame:(CADisplayLink *)displayLink
+//{
+//  [REANode runPropUpdates];
+////  [self stopAnimationLoopIfNeeded];
+//}
 
 //- (void)stepAnimations:(CADisplayLink *)displaylink
 //{
