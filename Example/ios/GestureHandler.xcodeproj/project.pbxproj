@@ -28,6 +28,7 @@
 		32656E7471D6439F8DDAF936 /* MaterialIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3590D69905114159A3B74200 /* MaterialIcons.ttf */; };
 		3AF53C6DB5464F2E8A977005 /* SimpleLineIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D4363B3FAD994C7CB59220D8 /* SimpleLineIcons.ttf */; };
 		444DA3621F223F3F00AA9BCA /* MBFingerTipWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 444DA3611F223F3F00AA9BCA /* MBFingerTipWindow.m */; };
+		444DBA06207F50AE00E1F1B5 /* REABezierNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 444DBA05207F50AE00E1F1B5 /* REABezierNode.m */; };
 		4477819B20763D8000B4D8C9 /* REANode.m in Sources */ = {isa = PBXBuildFile; fileRef = 4477819A20763D8000B4D8C9 /* REANode.m */; };
 		447781C320763EB000B4D8C9 /* REATransformNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 447781C220763EB000B4D8C9 /* REATransformNode.m */; };
 		447781C520763FEA00B4D8C9 /* REAValueNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 447781C420763FEA00B4D8C9 /* REAValueNode.m */; };
@@ -336,6 +337,8 @@
 		3590D69905114159A3B74200 /* MaterialIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialIcons.ttf"; sourceTree = "<group>"; };
 		444DA3601F223F3F00AA9BCA /* MBFingerTipWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MBFingerTipWindow.h; sourceTree = "<group>"; };
 		444DA3611F223F3F00AA9BCA /* MBFingerTipWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MBFingerTipWindow.m; sourceTree = "<group>"; };
+		444DB9DF207F509C00E1F1B5 /* REABezierNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = REABezierNode.h; sourceTree = "<group>"; };
+		444DBA05207F50AE00E1F1B5 /* REABezierNode.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = REABezierNode.m; sourceTree = "<group>"; };
 		4477819A20763D8000B4D8C9 /* REANode.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = REANode.m; sourceTree = "<group>"; };
 		447781C120763EA100B4D8C9 /* REATransformNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = REATransformNode.h; sourceTree = "<group>"; };
 		447781C220763EB000B4D8C9 /* REATransformNode.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = REATransformNode.m; sourceTree = "<group>"; };
@@ -594,6 +597,8 @@
 				447781D3207E099800B4D8C9 /* REAClockNodes.m */,
 				447781DE207E522700B4D8C9 /* REAJSCallNode.h */,
 				447781DF207E523500B4D8C9 /* REAJSCallNode.m */,
+				444DB9DF207F509C00E1F1B5 /* REABezierNode.h */,
+				444DBA05207F50AE00E1F1B5 /* REABezierNode.m */,
 			);
 			path = Nodes;
 			sourceTree = "<group>";
@@ -1097,6 +1102,7 @@
 				4477819B20763D8000B4D8C9 /* REANode.m in Sources */,
 				447781DD207E1A0E00B4D8C9 /* READebugNode.m in Sources */,
 				447781C320763EB000B4D8C9 /* REATransformNode.m in Sources */,
+				444DBA06207F50AE00E1F1B5 /* REABezierNode.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1214,7 +1220,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -1252,7 +1258,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
