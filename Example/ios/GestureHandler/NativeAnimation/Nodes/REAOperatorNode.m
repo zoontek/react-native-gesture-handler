@@ -38,7 +38,6 @@ return @(OP); \
   NSArray<NSNumber *> *_input;
   NSMutableArray<REANode *> *_inputNodes;
   REAOperatorBlock _op;
-  id _config;
 }
 
 - (instancetype)initWithID:(REANodeID)nodeID config:(NSDictionary<NSString *,id> *)config
@@ -78,7 +77,6 @@ return @(OP); \
             };
   });
   if ((self = [super initWithID:nodeID config:config])) {
-    _config = config;
     _input = config[@"input"];
     _inputNodes = [NSMutableArray arrayWithCapacity:_input.count];
     _op = OPS[config[@"op"]];

@@ -4,14 +4,18 @@
 #import <React/RCTBridgeModule.h>
 #import <React/RCTUIManager.h>
 
+@class REAModule;
+
 typedef void (^REAOnAnimationCallback)(CADisplayLink *displayLink);
 typedef void (^REAAfterAnimationCallback)();
 
 @interface REANodesManager : NSObject
 
 @property (nonatomic, weak, nullable) RCTUIManager *uiManager;
+@property (nonatomic, weak, nullable) REAModule *reanimatedModule;
 
-- (nonnull instancetype)initWithUIManager:(nonnull RCTUIManager *)uiManager;
+- (nonnull instancetype)initWithModule:(REAModule *)reanimatedModule
+                             uiManager:(nonnull RCTUIManager *)uiManager;
 
 - (REANode* _Nullable)findNodeByID:(nonnull REANodeID)nodeID;
 

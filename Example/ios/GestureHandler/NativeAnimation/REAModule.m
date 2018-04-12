@@ -31,7 +31,8 @@ RCT_EXPORT_MODULE(ReanimatedModule);
 {
   [super setBridge:bridge];
 
-  _nodesManager = [[REANodesManager alloc] initWithUIManager:self.bridge.uiManager];
+  _nodesManager = [[REANodesManager alloc] initWithModule:self
+                                                uiManager:self.bridge.uiManager];
   _operations = [NSMutableArray new];
 
   [bridge.eventDispatcher addDispatchObserver:self];
@@ -198,7 +199,7 @@ RCT_EXPORT_METHOD(connectNodeToView:(nonnull NSNumber *)nodeID
 
 - (NSArray<NSString *> *)supportedEvents
 {
-  return @[@"onRenimatedValueUpdate"];
+  return @[@"onReanimatedCall"];
 }
 
 //- (void)animatedNode:(RCTValueAnimatedNode *)node didUpdateValue:(CGFloat)value

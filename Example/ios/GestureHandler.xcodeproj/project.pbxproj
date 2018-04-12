@@ -38,6 +38,7 @@
 		447781D4207E099800B4D8C9 /* REAClockNodes.m in Sources */ = {isa = PBXBuildFile; fileRef = 447781D3207E099800B4D8C9 /* REAClockNodes.m */; };
 		447781D6207E171E00B4D8C9 /* REASetNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 447781D5207E171E00B4D8C9 /* REASetNode.m */; };
 		447781DD207E1A0E00B4D8C9 /* READebugNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 447781DC207E1A0E00B4D8C9 /* READebugNode.m */; };
+		447781E0207E523500B4D8C9 /* REAJSCallNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 447781DF207E523500B4D8C9 /* REAJSCallNode.m */; };
 		4486EC712076263F008A0135 /* REANodesManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 4486EC5F2076263F008A0135 /* REANodesManager.m */; };
 		4486EC722076263F008A0135 /* REAModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 4486EC602076263F008A0135 /* REAModule.m */; };
 		4486EC762076340F008A0135 /* REAStyleNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 4486EC752076340F008A0135 /* REAStyleNode.m */; };
@@ -353,6 +354,8 @@
 		447781D8207E175E00B4D8C9 /* REASetNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = REASetNode.h; sourceTree = "<group>"; };
 		447781D9207E19E600B4D8C9 /* READebugNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = READebugNode.h; sourceTree = "<group>"; };
 		447781DC207E1A0E00B4D8C9 /* READebugNode.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = READebugNode.m; sourceTree = "<group>"; };
+		447781DE207E522700B4D8C9 /* REAJSCallNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = REAJSCallNode.h; sourceTree = "<group>"; };
+		447781DF207E523500B4D8C9 /* REAJSCallNode.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = REAJSCallNode.m; sourceTree = "<group>"; };
 		4486EC442076263F008A0135 /* RCTReanimatedNodesManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RCTReanimatedNodesManager.h; sourceTree = "<group>"; };
 		4486EC452076263F008A0135 /* RCTAnimationUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RCTAnimationUtils.h; sourceTree = "<group>"; };
 		4486EC472076263F008A0135 /* REAValueNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = REAValueNode.h; sourceTree = "<group>"; };
@@ -589,6 +592,8 @@
 				447781DC207E1A0E00B4D8C9 /* READebugNode.m */,
 				447781D2207E098100B4D8C9 /* REAClockNodes.h */,
 				447781D3207E099800B4D8C9 /* REAClockNodes.m */,
+				447781DE207E522700B4D8C9 /* REAJSCallNode.h */,
+				447781DF207E523500B4D8C9 /* REAJSCallNode.m */,
 			);
 			path = Nodes;
 			sourceTree = "<group>";
@@ -1086,6 +1091,7 @@
 				447781CB207B5C8400B4D8C9 /* REABlockNode.m in Sources */,
 				447781D1207B65D600B4D8C9 /* REAOperatorNode.m in Sources */,
 				4486EC722076263F008A0135 /* REAModule.m in Sources */,
+				447781E0207E523500B4D8C9 /* REAJSCallNode.m in Sources */,
 				447781C8207693D100B4D8C9 /* REAPropsNode.m in Sources */,
 				447781D4207E099800B4D8C9 /* REAClockNodes.m in Sources */,
 				4477819B20763D8000B4D8C9 /* REANode.m in Sources */,

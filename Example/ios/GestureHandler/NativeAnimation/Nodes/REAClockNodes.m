@@ -8,8 +8,15 @@
 
 @end
 
-@implementation REAClockNode {
-  CFTimeInterval _lastTimestamp;
+@implementation REAClockNode
+
+- (instancetype)initWithID:(REANodeID)nodeID config:(NSDictionary<NSString *,id> *)config
+{
+  if ((self = [super initWithID:nodeID config:config])) {
+    _isRunning = NO;
+    _lastTimestampMs = @(0);
+  }
+  return self;
 }
 
 - (void)start

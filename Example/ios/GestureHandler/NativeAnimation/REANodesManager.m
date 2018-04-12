@@ -13,6 +13,7 @@
 #import "Nodes/REASetNode.h"
 #import "Nodes/READebugNode.h"
 #import "Nodes/REAClockNodes.h"
+#import "Nodes/REAJSCallNode.h"
 
 @implementation REANodesManager
 {
@@ -26,16 +27,15 @@
   NSMutableArray<REAOnAnimationCallback> *_onAnimationCallbacks;
 }
 
-- (instancetype)initWithUIManager:(nonnull RCTUIManager *)uiManager
+- (instancetype)initWithModule:(REAModule *)reanimatedModule
+                     uiManager:(RCTUIManager *)uiManager
 {
   if ((self = [super init])) {
+    _reanimatedModule = reanimatedModule;
     _uiManager = uiManager;
     _nodes = [NSMutableDictionary new];
     _onAnimationCallbacks = [NSMutableArray new];
     _afterAnimationCallbacks = [NSMutableArray new];
-//    [self startAnimationLoopIfNeeded];
-//    _eventDrivers = [NSMutableDictionary new];
-//    _activeAnimations = [NSMutableSet new];
   }
   return self;
 }
@@ -122,6 +122,9 @@
             @"clockStart": [REAClockStartNode class],
             @"clockStop": [REAClockStopNode class],
             @"clockTest": [REAClockTestNode class],
+            @"call": [REAJSCallNode class],
+//            @"bezier": nil,
+//            @"listener": nil,
             };
   });
 
