@@ -14,6 +14,7 @@
 #import "Nodes/READebugNode.h"
 #import "Nodes/REAClockNodes.h"
 #import "Nodes/REAJSCallNode.h"
+#import "Nodes/REABezierNode.h"
 
 @implementation REANodesManager
 {
@@ -123,7 +124,7 @@
             @"clockStop": [REAClockStopNode class],
             @"clockTest": [REAClockTestNode class],
             @"call": [REAJSCallNode class],
-//            @"bezier": nil,
+            @"bezier": [REABezierNode class],
 //            @"listener": nil,
             };
   });
