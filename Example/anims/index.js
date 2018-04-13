@@ -37,7 +37,6 @@ class Snappable extends Component {
     const transX = new Value(0);
     const prevState = new Value(-1);
     const prevDragX = new Value(0);
-    const springTo = new Value(0);
 
     const clock = new Clock();
 
@@ -55,6 +54,7 @@ class Snappable extends Component {
       overshootClamping: false,
       restSpeedThreshold: 0.001,
       restDisplacementThreshold: 0.001,
+      toValue: new Value(0),
     };
 
     this._transX = cond(
@@ -72,7 +72,7 @@ class Snappable extends Component {
           set(springState.velocity, dragVX),
           set(springState.position, transX),
           set(
-            springTo,
+            springConfig.toValue,
             cond(
               lessThan(add(transX, multiply(TOSS_SEC, dragVX)), 0),
               -100,
@@ -82,7 +82,7 @@ class Snappable extends Component {
           set(prevDragX, 0),
           startClock(clock),
         ]),
-        spring(clock, springTo, springState, springConfig),
+        spring(clock, springState, springConfig),
         cond(springState.finished, stopClock(clock)),
         set(prevState, state),
         set(transX, springState.position),
@@ -90,10 +90,10 @@ class Snappable extends Component {
     );
   }
   render() {
-    const { children } = this.props;
+    const { children, ...rest } = this.props;
     return (
       <PanGestureHandler
-        {...this.props}
+        {...rest}
         maxPointers={1}
         onGestureEvent={this._onGestureEvent}
         onHandlerStateChange={this._onHandlerStateChange}>

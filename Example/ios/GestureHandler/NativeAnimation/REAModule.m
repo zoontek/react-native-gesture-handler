@@ -81,94 +81,31 @@ RCT_EXPORT_METHOD(connectNodeToView:(nonnull NSNumber *)nodeID
   }];
 }
 
-//RCT_EXPORT_METHOD(stopAnimation:(nonnull NSNumber *)animationId)
-//{
-//  [self addOperationBlock:^(REAReanimatedNodesManager *nodesManager) {
-//    [nodesManager stopAnimation:animationId];
-//  }];
-//}
-//
-//RCT_EXPORT_METHOD(setAnimatedNodeValue:(nonnull NSNumber *)nodeTag
-//                  value:(nonnull NSNumber *)value)
-//{
-//  [self addOperationBlock:^(REAReanimatedNodesManager *nodesManager) {
-//    [nodesManager setAnimatedNodeValue:nodeTag value:value];
-//  }];
-//}
-//
-//RCT_EXPORT_METHOD(setAnimatedNodeOffset:(nonnull NSNumber *)nodeTag
-//                  offset:(nonnull NSNumber *)offset)
-//{
-//  [self addOperationBlock:^(REAReanimatedNodesManager *nodesManager) {
-//    [nodesManager setAnimatedNodeOffset:nodeTag offset:offset];
-//  }];
-//}
-//
-//RCT_EXPORT_METHOD(flattenAnimatedNodeOffset:(nonnull NSNumber *)nodeTag)
-//{
-//  [self addOperationBlock:^(REAReanimatedNodesManager *nodesManager) {
-//    [nodesManager flattenAnimatedNodeOffset:nodeTag];
-//  }];
-//}
-//
-//RCT_EXPORT_METHOD(extractAnimatedNodeOffset:(nonnull NSNumber *)nodeTag)
-//{
-//  [self addOperationBlock:^(REAReanimatedNodesManager *nodesManager) {
-//    [nodesManager extractAnimatedNodeOffset:nodeTag];
-//  }];
-//}
-//
-//
-//RCT_EXPORT_METHOD(disconnectAnimatedNodeFromView:(nonnull NSNumber *)nodeTag
-//                  viewTag:(nonnull NSNumber *)viewTag)
-//{
-//  [self addPreOperationBlock:^(REAReanimatedNodesManager *nodesManager) {
-//    [nodesManager restoreDefaultValues:nodeTag];
-//  }];
-//  [self addOperationBlock:^(REAReanimatedNodesManager *nodesManager) {
-//    [nodesManager disconnectAnimatedNodeFromView:nodeTag viewTag:viewTag];
-//  }];
-//}
-//
-//RCT_EXPORT_METHOD(dropAnimatedNode:(nonnull NSNumber *)tag)
-//{
-//  [self addOperationBlock:^(REAReanimatedNodesManager *nodesManager) {
-//    [nodesManager dropAnimatedNode:tag];
-//  }];
-//}
-//
-//RCT_EXPORT_METHOD(startListeningToAnimatedNodeValue:(nonnull NSNumber *)tag)
-//{
-//  __weak id<RCTValueAnimatedNodeObserver> valueObserver = self;
-//  [self addOperationBlock:^(REAReanimatedNodesManager *nodesManager) {
-//    [nodesManager startListeningToAnimatedNodeValue:tag valueObserver:valueObserver];
-//  }];
-//}
-//
-//RCT_EXPORT_METHOD(stopListeningToAnimatedNodeValue:(nonnull NSNumber *)tag)
-//{
-//  [self addOperationBlock:^(REAReanimatedNodesManager *nodesManager) {
-//    [nodesManager stopListeningToAnimatedNodeValue:tag];
-//  }];
-//}
-//
-//RCT_EXPORT_METHOD(addAnimatedEventToView:(nonnull NSNumber *)viewTag
-//                  eventName:(nonnull NSString *)eventName
-//                  eventMapping:(NSDictionary<NSString *, id> *)eventMapping)
-//{
-//  [self addOperationBlock:^(REAReanimatedNodesManager *nodesManager) {
-//    [nodesManager addAnimatedEventToView:viewTag eventName:eventName eventMapping:eventMapping];
-//  }];
-//}
-//
-//RCT_EXPORT_METHOD(removeAnimatedEventFromView:(nonnull NSNumber *)viewTag
-//                  eventName:(nonnull NSString *)eventName
-//            animatedNodeTag:(nonnull NSNumber *)animatedNodeTag)
-//{
-//  [self addOperationBlock:^(REAReanimatedNodesManager *nodesManager) {
-//    [nodesManager removeAnimatedEventFromView:viewTag eventName:eventName animatedNodeTag:animatedNodeTag];
-//  }];
-//}
+RCT_EXPORT_METHOD(disconnectNodeFromView:(nonnull NSNumber *)nodeID
+                  viewTag:(nonnull NSNumber *)viewTag)
+{
+  [self addOperationBlock:^(REANodesManager *nodesManager) {
+    [nodesManager disconnectNodeFromView:nodeID viewTag:viewTag];
+  }];
+}
+
+RCT_EXPORT_METHOD(attachEvent:(nonnull NSNumber *)viewTag
+                  eventName:(nonnull NSString *)eventName
+                  eventNodeID:(nonnull NSNumber *)eventNodeID)
+{
+  [self addOperationBlock:^(REANodesManager *nodesManager) {
+    [nodesManager attachEvent:viewTag eventName:eventName eventNodeID:eventNodeID];
+  }];
+}
+
+RCT_EXPORT_METHOD(detachEvent:(nonnull NSNumber *)viewTag
+                  eventName:(nonnull NSString *)eventName
+                  eventNodeID:(nonnull NSNumber *)eventNodeID)
+{
+  [self addOperationBlock:^(REANodesManager *nodesManager) {
+    [nodesManager detachEvent:viewTag eventName:eventName eventNodeID:eventNodeID];
+  }];
+}
 
 #pragma mark -- Batch handling
 
@@ -188,9 +125,11 @@ RCT_EXPORT_METHOD(connectNodeToView:(nonnull NSNumber *)nodeID
   NSArray<AnimatedOperation> *operations = _operations;
   _operations = [NSMutableArray new];
 
+  REANodesManager *nodesManager = _nodesManager;
+
   [uiManager addUIBlock:^(__unused RCTUIManager *manager, __unused NSDictionary<NSNumber *, UIView *> *viewRegistry) {
     for (AnimatedOperation operation in operations) {
-      operation(self->_nodesManager);
+      operation(nodesManager);
     }
   }];
 }
@@ -202,19 +141,10 @@ RCT_EXPORT_METHOD(connectNodeToView:(nonnull NSNumber *)nodeID
   return @[@"onReanimatedCall"];
 }
 
-//- (void)animatedNode:(RCTValueAnimatedNode *)node didUpdateValue:(CGFloat)value
-//{
-//  [self sendEventWithName:@"onAnimatedValueUpdate"
-//                     body:@{@"id": node.nodeID, @"value": @(value)}];
-//}
-
 - (void)eventDispatcherWillDispatchEvent:(id<RCTEvent>)event
 {
-  // Events can be dispatched from any queue so we have to make sure handleAnimatedEvent
-  // is run from the main queue.
-//  RCTExecuteOnMainQueue(^{
-//    [self->_nodesManager handleAnimatedEvent:event];
-//  });
+  // Events can be dispatched from any queue
+  [_nodesManager dispatchEvent:event];
 }
 
 @end

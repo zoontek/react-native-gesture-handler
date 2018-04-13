@@ -29,6 +29,7 @@
 		3AF53C6DB5464F2E8A977005 /* SimpleLineIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D4363B3FAD994C7CB59220D8 /* SimpleLineIcons.ttf */; };
 		444DA3621F223F3F00AA9BCA /* MBFingerTipWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 444DA3611F223F3F00AA9BCA /* MBFingerTipWindow.m */; };
 		444DBA06207F50AE00E1F1B5 /* REABezierNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 444DBA05207F50AE00E1F1B5 /* REABezierNode.m */; };
+		444DBA0820808F3C00E1F1B5 /* REAEventNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 444DBA0720808F3C00E1F1B5 /* REAEventNode.m */; };
 		4477819B20763D8000B4D8C9 /* REANode.m in Sources */ = {isa = PBXBuildFile; fileRef = 4477819A20763D8000B4D8C9 /* REANode.m */; };
 		447781C320763EB000B4D8C9 /* REATransformNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 447781C220763EB000B4D8C9 /* REATransformNode.m */; };
 		447781C520763FEA00B4D8C9 /* REAValueNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 447781C420763FEA00B4D8C9 /* REAValueNode.m */; };
@@ -339,6 +340,8 @@
 		444DA3611F223F3F00AA9BCA /* MBFingerTipWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MBFingerTipWindow.m; sourceTree = "<group>"; };
 		444DB9DF207F509C00E1F1B5 /* REABezierNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = REABezierNode.h; sourceTree = "<group>"; };
 		444DBA05207F50AE00E1F1B5 /* REABezierNode.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = REABezierNode.m; sourceTree = "<group>"; };
+		444DBA0720808F3C00E1F1B5 /* REAEventNode.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = REAEventNode.m; sourceTree = "<group>"; };
+		444DBA0920808F5900E1F1B5 /* REAEventNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = REAEventNode.h; sourceTree = "<group>"; };
 		4477819A20763D8000B4D8C9 /* REANode.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = REANode.m; sourceTree = "<group>"; };
 		447781C120763EA100B4D8C9 /* REATransformNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = REATransformNode.h; sourceTree = "<group>"; };
 		447781C220763EB000B4D8C9 /* REATransformNode.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = REATransformNode.m; sourceTree = "<group>"; };
@@ -599,6 +602,8 @@
 				447781DF207E523500B4D8C9 /* REAJSCallNode.m */,
 				444DB9DF207F509C00E1F1B5 /* REABezierNode.h */,
 				444DBA05207F50AE00E1F1B5 /* REABezierNode.m */,
+				444DBA0920808F5900E1F1B5 /* REAEventNode.h */,
+				444DBA0720808F3C00E1F1B5 /* REAEventNode.m */,
 			);
 			path = Nodes;
 			sourceTree = "<group>";
@@ -1090,6 +1095,7 @@
 				447781CE207B60F300B4D8C9 /* REACondNode.m in Sources */,
 				4486EC712076263F008A0135 /* REANodesManager.m in Sources */,
 				447781D6207E171E00B4D8C9 /* REASetNode.m in Sources */,
+				444DBA0820808F3C00E1F1B5 /* REAEventNode.m in Sources */,
 				447781C520763FEA00B4D8C9 /* REAValueNode.m in Sources */,
 				444DA3621F223F3F00AA9BCA /* MBFingerTipWindow.m in Sources */,
 				4486EC762076340F008A0135 /* REAStyleNode.m in Sources */,

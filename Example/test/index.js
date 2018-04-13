@@ -9,6 +9,7 @@ const {
   cond,
   eq,
   add,
+  call,
   multiply,
   lessThan,
   startClock,
@@ -65,9 +66,9 @@ function runTiming(clock, value, dest) {
   };
 
   const config = {
-    duration: 500,
+    duration: 5000,
     toValue: new Value(0),
-    easing: Easing.linear,
+    easing: Easing.inOut(Easing.ease),
   };
 
   return block([
@@ -94,7 +95,7 @@ export default class Example extends Component {
     // const twenty = new Value(20);
     // const thirty = new Value(30);
     // this._transX = cond(new Value(0), twenty, multiply(3, thirty));
-    this._transX = runSpring(clock, 0, 120);
+    this._transX = runTiming(clock, -120, 120);
   }
   componentDidMount() {
     // Animated.spring(this._transX, {

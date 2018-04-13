@@ -148,6 +148,6 @@ export default class AnimatedNode {
   }
 
   _disconnectAnimatedView(nativeViewTag) {
-    ReanimatedModule.disconnectNodeToView(this.__nodeID, nativeViewTag);
+    ReanimatedModule.disconnectNodeFromView(this.__nodeID, nativeViewTag);
   }
 }

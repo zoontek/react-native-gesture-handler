@@ -1,8 +1,5 @@
-import NativeAnimatedHelper from '../NativeAnimatedHelper';
 import AnimatedNode from './AnimatedNode';
 import { val } from '../utils';
-
-const NativeAnimatedAPI = NativeAnimatedHelper.API;
 
 let _uniqueId = 1;
 
@@ -25,14 +22,6 @@ export default class AnimatedValue extends AnimatedNode {
       this.__inputNodes.forEach(val);
     }
     return this._value + this._offset;
-  }
-
-  __makeNative() {
-    super.__makeNative();
-
-    if (Object.keys(this._listeners).length) {
-      this._startListeningToNativeValueUpdates();
-    }
   }
 
   /**
@@ -121,9 +110,6 @@ export default class AnimatedValue extends AnimatedNode {
    */
   removeListener(id) {
     delete this._listeners[id];
-    if (this.__isNative && Object.keys(this._listeners).length === 0) {
-      this._stopListeningForNativeValueUpdates();
-    }
   }
 
   /**
@@ -133,36 +119,6 @@ export default class AnimatedValue extends AnimatedNode {
    */
   removeAllListeners() {
     this._listeners = {};
-    if (this.__isNative) {
-      this._stopListeningForNativeValueUpdates();
-    }
-  }
-
-  _startListeningToNativeValueUpdates() {
-    if (this.__nativeAnimatedValueListener) {
-      return;
-    }
-
-    NativeAnimatedAPI.startListeningToAnimatedNodeValue(this.__getNativeTag());
-    this.__nativeAnimatedValueListener = NativeAnimatedHelper.nativeEventEmitter.addListener(
-      'onAnimatedValueUpdate',
-      data => {
-        if (data.tag !== this.__getNativeTag()) {
-          return;
-        }
-        this._updateValue(data.value, false /* flush */);
-      }
-    );
-  }
-
-  _stopListeningForNativeValueUpdates() {
-    if (!this.__nativeAnimatedValueListener) {
-      return;
-    }
-
-    this.__nativeAnimatedValueListener.remove();
-    this.__nativeAnimatedValueListener = null;
-    NativeAnimatedAPI.stopListeningToAnimatedNodeValue(this.__getNativeTag());
   }
 
   /**

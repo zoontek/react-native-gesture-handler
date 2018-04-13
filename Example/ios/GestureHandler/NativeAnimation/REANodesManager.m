@@ -15,14 +15,13 @@
 #import "Nodes/REAClockNodes.h"
 #import "Nodes/REAJSCallNode.h"
 #import "Nodes/REABezierNode.h"
+#import "Nodes/REAEventNode.h"
 
 @implementation REANodesManager
 {
   NSMutableDictionary<REANodeID, REANode *> *_nodes;
-  // Mapping of a view tag and an event name to a list of event animation drivers. 99% of the time
-  // there will be only one driver per mapping so all code code should be optimized around that.
-//  NSMutableDictionary<NSString *, NSMutableArray<RCTEventAnimation *> *> *_eventDrivers;
-//  NSMutableSet<id<RCTAnimationDriver>> *_activeAnimations;
+  NSMapTable<NSString *, REANode *> *_eventMapping;
+  NSMutableArray<id<RCTEvent>> *_eventQueue;
   CADisplayLink *_displayLink;
   NSMutableArray<REAAfterAnimationCallback> *_afterAnimationCallbacks;
   NSMutableArray<REAOnAnimationCallback> *_onAnimationCallbacks;
@@ -35,6 +34,8 @@
     _reanimatedModule = reanimatedModule;
     _uiManager = uiManager;
     _nodes = [NSMutableDictionary new];
+    _eventMapping = [NSMapTable strongToWeakObjectsMapTable];
+    _eventQueue = [NSMutableArray new];
     _onAnimationCallbacks = [NSMutableArray new];
     _afterAnimationCallbacks = [NSMutableArray new];
   }
@@ -80,6 +81,13 @@
 
 - (void)onAnimationFrame:(CADisplayLink *)displayLink
 {
+  // We process all enqueued events first
+  for (NSUInteger i = 0; i < _eventQueue.count; i++) {
+    id<RCTEvent> event = _eventQueue[i];
+    [self processEvent:event];
+  }
+  [_eventQueue removeAllObjects];
+
   NSArray<REAOnAnimationCallback> *callbacks = _onAnimationCallbacks;
   _onAnimationCallbacks = [NSMutableArray new];
 
@@ -90,12 +98,13 @@
     block(displayLink);
   }
 
-  // new items can be added to the _afterANimationCallback array during the
+  // new items can be added to the _afterAnimationCallback array during the
   // loop by the enqueued callbacks. In that case we want to run them immediately
   // and clear after animation queue once all the callbacks are done
   for (NSUInteger i = 0; i < _afterAnimationCallbacks.count; i++) {
     _afterAnimationCallbacks[i]();
   }
+  [_afterAnimationCallbacks removeAllObjects];
 
   if (_onAnimationCallbacks.count == 0) {
     [self stopUpdatingOnAnimationFrame];
@@ -125,6 +134,7 @@
             @"clockTest": [REAClockTestNode class],
             @"call": [REAJSCallNode class],
             @"bezier": [REABezierNode class],
+            @"event": [REAEventNode class],
 //            @"listener": nil,
             };
   });
@@ -146,11 +156,9 @@
 {
   REANode *node = _nodes[nodeID];
   if (node) {
-//    [node detachNode];
     [_nodes removeObjectForKey:nodeID];
   }
 }
-
 
 - (void)connectNodes:(nonnull NSNumber *)parentID childID:(nonnull REANodeID)childID
 {
@@ -190,6 +198,46 @@
 
   if ([node isKindOfClass:[REAPropsNode class]]) {
     [(REAPropsNode *)node connectToView:viewTag viewName:viewName];
+  }
+}
+
+- (void)attachEvent:(NSNumber *)viewTag
+          eventName:(NSString *)eventName
+        eventNodeID:(REANodeID)eventNodeID
+{
+  RCTAssertParam(eventNodeID);
+  REANode *eventNode = _nodes[eventNodeID];
+  RCTAssert([eventNode isKindOfClass:[REAEventNode class]], @"Event node is of an invalid type");
+
+  NSString *key = [NSString stringWithFormat:@"%@%@", viewTag, eventName];
+  RCTAssert([_eventMapping objectForKey:key] == nil, @"Event handler already set for the given view and event type");
+  [_eventMapping setObject:eventNode forKey:key];
+}
+
+- (void)detachEvent:(NSNumber *)viewTag
+          eventName:(NSString *)eventName
+        eventNodeID:(REANodeID)eventNodeID
+{
+  NSString *key = [NSString stringWithFormat:@"%@%@", viewTag, eventName];
+  [_eventMapping removeObjectForKey:key];
+}
+
+- (void)processEvent:(id<RCTEvent>)event
+{
+  NSString *key = [NSString stringWithFormat:@"%@%@", event.viewTag, event.eventName];
+  REAEventNode *eventNode = [_eventMapping objectForKey:key];
+  [eventNode processEvent:event];
+}
+
+- (void)dispatchEvent:(id<RCTEvent>)event
+{
+  NSString *key = [NSString stringWithFormat:@"%@%@", event.viewTag, event.eventName];
+  REANode *eventNode = [_eventMapping objectForKey:key];
+
+  if (eventNode != nil) {
+    // enqueue node to be processed
+    [_eventQueue addObject:event];
+    [self startUpdatingOnAnimationFrame];
   }
 }
 
@@ -272,70 +320,6 @@
 //
 //  RCTValueAnimatedNode *valueNode = (RCTValueAnimatedNode *)node;
 //  [valueNode extractOffset];
-//}
-//
-//#pragma mark -- Drivers
-//
-//- (void)startAnimatingNode:(nonnull NSNumber *)animationId
-//                   nodeTag:(nonnull NSNumber *)nodeTag
-//                    config:(NSDictionary<NSString *, id> *)config
-//               endCallback:(RCTResponseSenderBlock)callBack
-//{
-//  RCTValueAnimatedNode *valueNode = (RCTValueAnimatedNode *)_animationNodes[nodeTag];
-//
-//  NSString *type = config[@"type"];
-//  id<RCTAnimationDriver> animationDriver;
-//
-//  if ([type isEqual:@"frames"]) {
-//    animationDriver = [[RCTFrameAnimation alloc] initWithId:animationId
-//                                                     config:config
-//                                                    forNode:valueNode
-//                                                   callBack:callBack];
-//
-//  } else if ([type isEqual:@"spring"]) {
-//    animationDriver = [[RCTSpringAnimation alloc] initWithId:animationId
-//                                                      config:config
-//                                                     forNode:valueNode
-//                                                    callBack:callBack];
-//
-//  } else if ([type isEqual:@"decay"]) {
-//    animationDriver = [[RCTDecayAnimation alloc] initWithId:animationId
-//                                                     config:config
-//                                                    forNode:valueNode
-//                                                   callBack:callBack];
-//  } else {
-//    RCTLogError(@"Unsupported animation type: %@", config[@"type"]);
-//    return;
-//  }
-//
-//  [_activeAnimations addObject:animationDriver];
-//  [animationDriver startAnimation];
-//  [self startAnimationLoopIfNeeded];
-//}
-//
-//- (void)stopAnimation:(nonnull NSNumber *)animationId
-//{
-//  for (id<RCTAnimationDriver> driver in _activeAnimations) {
-//    if ([driver.animationId isEqual:animationId]) {
-//      [driver stopAnimation];
-//      [_activeAnimations removeObject:driver];
-//      break;
-//    }
-//  }
-//}
-//
-//- (void)stopAnimationsForNode:(nonnull REAReanimatedNode *)node
-//{
-//    NSMutableArray<id<RCTAnimationDriver>> *discarded = [NSMutableArray new];
-//    for (id<RCTAnimationDriver> driver in _activeAnimations) {
-//        if ([driver.valueNode isEqual:node]) {
-//            [discarded addObject:driver];
-//        }
-//    }
-//    for (id<RCTAnimationDriver> driver in discarded) {
-//        [driver stopAnimation];
-//        [_activeAnimations removeObject:driver];
-//    }
 //}
 //
 //#pragma mark -- Events
@@ -432,62 +416,5 @@
 //
 #pragma mark -- Animation Loop
 
-//- (void)startAnimationLoopIfNeeded
-//{
-//  if (!_displayLink) {
-//    _displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(onFrame:)];
-//    [_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
-//  }
-//}
-//
-//- (void)stopAnimationLoopIfNeeded
-//{
-//
-//}
-//
-//- (void)stopAnimationLoop
-//{
-//  if (_displayLink) {
-//    [_displayLink invalidate];
-//    _displayLink = nil;
-//  }
-//}
-//
-//- (void)onFrame:(CADisplayLink *)displayLink
-//{
-//  [REANode runPropUpdates];
-////  [self stopAnimationLoopIfNeeded];
-//}
-
-//- (void)stepAnimations:(CADisplayLink *)displaylink
-//{
-//  NSTimeInterval time = displaylink.timestamp;
-//  for (id<RCTAnimationDriver> animationDriver in _activeAnimations) {
-//    [animationDriver stepAnimationWithTime:time];
-//  }
-//
-//  [self updateAnimations];
-//
-//  for (id<RCTAnimationDriver> animationDriver in [_activeAnimations copy]) {
-//    if (animationDriver.animationHasFinished) {
-//      [animationDriver stopAnimation];
-//      [_activeAnimations removeObject:animationDriver];
-//    }
-//  }
-//
-//  [self stopAnimationLoopIfNeeded];
-//}
-//
-//
-//#pragma mark -- Updates
-//
-//- (void)updateAnimations
-//{
-//  [_animationNodes enumerateKeysAndObjectsUsingBlock:^(NSNumber *key, REAReanimatedNode *node, BOOL *stop) {
-//    if (node.needsUpdate) {
-//      [node updateNodeIfNecessary];
-//    }
-//  }];
-//}
 
 @end

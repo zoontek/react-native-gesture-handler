@@ -1,13 +1,14 @@
-import { AnimatedEvent } from './AnimatedEvent';
-import AnimatedProps from './core/AnimatedProps';
 import React from 'React';
 import ViewStylePropTypes from 'ViewStylePropTypes';
+
+import AnimatedProps from './core/AnimatedProps';
+import AnimatedEvent from './core/AnimatedEvent';
 
 import invariant from 'fbjs/lib/invariant';
 
 export default function createAnimatedComponent(Component) {
   invariant(
-    typeof Component === 'stringy' ||
+    typeof Component === 'string' ||
       (Component.prototype && Component.prototype.isReactComponent),
     '`createAnimatedComponent` does not support stateless functional components; ' +
       'use a class component instead.'
@@ -57,9 +58,11 @@ export default function createAnimatedComponent(Component) {
 
       for (const key in this.props) {
         const prop = this.props[key];
-        if (prop instanceof AnimatedEvent && prop.__isNative) {
-          prop.__attach(scrollableNode, key);
-          this._eventDetachers.push(() => prop.__detach(scrollableNode, key));
+        if (prop instanceof AnimatedEvent) {
+          prop.attachEvent(scrollableNode, key);
+          this._eventDetachers.push(() =>
+            prop.detachEvent(scrollableNode, key)
+          );
         }
       }
     }
@@ -71,9 +74,9 @@ export default function createAnimatedComponent(Component) {
 
     // The system is best designed when setNativeProps is implemented. It is
     // able to avoid re-rendering and directly set the attributes that changed.
-    // However, setNativeProps can only be implemented on leaf native
-    // components. If you want to animate a composite component, you need to
-    // re-render it. In this case, we have a fallback that uses forceUpdate.
+    // However, setNativeProps can only be implemented on native components
+    // If you want to animate a composite component, you need to re-render it.
+    // In this case, we have a fallback that uses forceUpdate.
     _animatedPropsCallback = () => {
       if (this._component == null) {
         // AnimatedProps is created in will-mount because it's used in render.
@@ -134,17 +137,7 @@ export default function createAnimatedComponent(Component) {
     render() {
       const props = this._propsAnimated.__getProps();
       return (
-        <Component
-          {...props}
-          ref={this._setComponentRef}
-          // The native driver updates views directly through the UI thread so we
-          // have to make sure the view doesn't get optimized away because it cannot
-          // go through the NativeViewHierarchyManager since it operates on the shadow
-          // thread.
-          collapsable={
-            this._propsAnimated.__isNative ? false : props.collapsable
-          }
-        />
+        <Component {...props} ref={this._setComponentRef} collapsable={false} />
       );
     }
 

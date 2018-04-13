@@ -1,5 +1,4 @@
 import AnimatedNode from './AnimatedNode';
-import NativeAnimatedHelper from '../NativeAnimatedHelper';
 
 function sanitizeTransform(inputTransform) {
   const outputTransform = [];

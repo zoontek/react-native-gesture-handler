@@ -1,6 +1,5 @@
 import AnimatedNode from './AnimatedNode';
 import AnimatedTransform from './AnimatedTransform';
-import NativeAnimatedHelper from '../NativeAnimatedHelper';
 
 import flattenStyle from 'flattenStyle';
 
@@ -65,31 +64,5 @@ export default class AnimatedStyle extends AnimatedNode {
 
   __onEvaluate() {
     return this._walkStyleAndGetAnimatedValues(this._style);
-  }
-
-  __makeNative() {
-    super.__makeNative();
-    for (const key in this._style) {
-      const value = this._style[key];
-      if (value instanceof AnimatedNode) {
-        value.__makeNative();
-      }
-    }
-  }
-
-  __getNativeConfig() {
-    const styleConfig = {};
-    for (const styleKey in this._style) {
-      if (this._style[styleKey] instanceof AnimatedNode) {
-        styleConfig[styleKey] = this._style[styleKey].__getNativeTag();
-      }
-      // Non-animated styles are set using `setNativeProps`, no need
-      // to pass those as a part of the node config
-    }
-    NativeAnimatedHelper.validateStyles(styleConfig);
-    return {
-      type: 'style',
-      style: styleConfig,
-    };
   }
 }

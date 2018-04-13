@@ -1,4 +1,3 @@
-import { AnimatedEvent } from './AnimatedEvent';
 import AnimatedCond from './core/AnimatedCond';
 import AnimatedSet from './core/AnimatedSet';
 import AnimatedOperator from './core/AnimatedOperator';
@@ -8,6 +7,7 @@ import AnimatedStopClock from './core/AnimatedStopClock';
 import AnimatedClockTest from './core/AnimatedClockTest';
 import AnimatedDebug from './core/AnimatedDebug';
 import AnimatedCall from './core/AnimatedCall';
+import AnimatedEvent from './core/AnimatedEvent';
 
 import { adapt } from './utils';
 
@@ -73,10 +73,5 @@ export const clockRunning = function(clock) {
 };
 
 export const event = function(argMapping, config) {
-  const animatedEvent = new AnimatedEvent(argMapping, config);
-  if (animatedEvent.__isNative) {
-    return animatedEvent;
-  } else {
-    return animatedEvent.__getHandler();
-  }
+  return new AnimatedEvent(argMapping, config);
 };
