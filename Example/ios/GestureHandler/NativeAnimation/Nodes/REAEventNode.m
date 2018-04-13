@@ -26,7 +26,6 @@
         value = [value valueForKey:eventPath[i]];
       } else {
         REAValueNode *node = (REAValueNode *)[self.nodesManager findNodeByID:eventPath[i]];
-        NSLog(@"UPDATE %@ <- %@", eventPath[i], value);
         [node setValue:value];
       }
     }
