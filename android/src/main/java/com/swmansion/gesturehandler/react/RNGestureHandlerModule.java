@@ -18,6 +18,7 @@ import com.facebook.react.uimanager.PixelUtil;
 import com.facebook.react.uimanager.UIBlock;
 import com.facebook.react.uimanager.UIManagerModule;
 import com.facebook.react.uimanager.events.EventDispatcher;
+import com.swmansion.gesturehandler.FlingGestureHandler;
 import com.swmansion.gesturehandler.GestureHandler;
 import com.swmansion.gesturehandler.LongPressGestureHandler;
 import com.swmansion.gesturehandler.NativeViewGestureHandler;
@@ -70,6 +71,8 @@ public class RNGestureHandlerModule extends ReactContextBaseJavaModule {
   private static final String KEY_PAN_MIN_POINTERS = "minPointers";
   private static final String KEY_PAN_MAX_POINTERS = "maxPointers";
   private static final String KEY_PAN_AVG_TOUCHES = "avgTouches";
+  private static final String KEY_NUMBER_OF_POINTERS = "numberOfPointers";
+  private static final String KEY_DIRECTION= "direction";
   private static final String KEY_PAN_SHOULD_ACTIVATE_BEFORE_FINISH = "shouldActivateBeforeFinish";
 
   private abstract static class HandlerFactory<T extends GestureHandler>
@@ -322,6 +325,34 @@ public class RNGestureHandlerModule extends ReactContextBaseJavaModule {
     }
   }
 
+  private static class FlingGestureHandlerFactory extends HandlerFactory<FlingGestureHandler> {
+    @Override
+    public Class<FlingGestureHandler> getType() {
+      return FlingGestureHandler.class;
+    }
+
+    @Override
+    public String getName() {
+      return "FlingGestureHandler";
+    }
+
+    @Override
+    public FlingGestureHandler create(Context context) {
+      return new FlingGestureHandler();
+    }
+
+    @Override
+    public void configure(FlingGestureHandler handler, ReadableMap config) {
+      super.configure(handler, config);
+      if (config.hasKey(KEY_NUMBER_OF_POINTERS)) {
+        handler.setNumberOfPointersRequired(config.getInt(KEY_NUMBER_OF_POINTERS));
+      }
+      if (config.hasKey(KEY_DIRECTION)) {
+        handler.setDirection(config.getInt(KEY_DIRECTION));
+      }
+    }
+  }
+
   private static class RotationGestureHandlerFactory extends HandlerFactory<RotationGestureHandler> {
     @Override
     public Class<RotationGestureHandler> getType() {
@@ -365,7 +396,8 @@ public class RNGestureHandlerModule extends ReactContextBaseJavaModule {
           new LongPressGestureHandlerFactory(),
           new PanGestureHandlerFactory(),
           new PinchGestureHandlerFactory(),
-          new RotationGestureHandlerFactory()
+          new RotationGestureHandlerFactory(),
+          new FlingGestureHandlerFactory()
   };
   private final RNGestureHandlerRegistry mRegistry = new RNGestureHandlerRegistry();
 
@@ -456,6 +488,11 @@ public class RNGestureHandlerModule extends ReactContextBaseJavaModule {
             "CANCELLED", GestureHandler.STATE_CANCELLED,
             "FAILED", GestureHandler.STATE_FAILED,
             "END", GestureHandler.STATE_END
+    ), "Direction", MapBuilder.of(
+            "RIGHT", GestureHandler.DIRECTION_RIGHT,
+            "LEFT", GestureHandler.DIRECTION_LEFT,
+            "UP", GestureHandler.DIRECTION_UP,
+            "DOWN", GestureHandler.DIRECTION_DOWN
     ));
   }
 

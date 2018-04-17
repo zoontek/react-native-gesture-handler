@@ -13,6 +13,7 @@ import PanAndScroll from './panAndScroll';
 import PanResponder from './panResponder';
 import Bouncing from './bouncing';
 import HorizontalDrawer from './horizontalDrawer';
+import Fling from './fling/index';
 import ChatHeads from './chatHeads';
 import { ComboWithGHScroll, ComboWithRNScroll } from './combo';
 import BottomSheet from './bottomSheet/index';
@@ -41,6 +42,10 @@ const SCREENS = {
   PanAndScroll: {
     screen: PanAndScroll,
     title: 'Horizontal pan or tap in ScrollView',
+  },
+  Fling: {
+    screen: Fling,
+    title: 'Flinghandler',
   },
   PanResponder: { screen: PanResponder },
   Bouncing: { screen: Bouncing, title: 'Twist & bounce back animation' },
