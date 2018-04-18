@@ -16,7 +16,7 @@
 - (void)setValue:(NSNumber *)value
 {
   _value = value;
-  [self markUpdated];
+  [self forceUpdateMemoizedValue:value];
 }
 
 - (id)evaluate

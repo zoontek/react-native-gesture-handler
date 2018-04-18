@@ -13,6 +13,7 @@ typedef void (^REAAfterAnimationCallback)();
 
 @property (nonatomic, weak, nullable) RCTUIManager *uiManager;
 @property (nonatomic, weak, nullable) REAModule *reanimatedModule;
+@property (nonatomic, readonly) CFTimeInterval currentAnimationTimestamp;
 
 - (nonnull instancetype)initWithModule:(REAModule *)reanimatedModule
                              uiManager:(nonnull RCTUIManager *)uiManager;

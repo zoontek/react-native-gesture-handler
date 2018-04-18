@@ -30,7 +30,6 @@
 
   weak_animationClb = animationClb = ^(CADisplayLink *displayLink) {
     if (!weakSelf.isRunning) return;
-    weakSelf.lastTimestampMs = @(displayLink.timestamp * 1000.);
     [weakSelf markUpdated];
     [weakSelf.nodesManager postOnAnimation:weak_animationClb];
   };
@@ -45,7 +44,7 @@
 
 - (id)evaluate
 {
-  return _lastTimestampMs;
+  return @(self.nodesManager.currentAnimationTimestamp * 1000.);
 }
 
 @end

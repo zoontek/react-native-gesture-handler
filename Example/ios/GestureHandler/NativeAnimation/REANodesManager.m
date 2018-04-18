@@ -81,6 +81,8 @@
 
 - (void)onAnimationFrame:(CADisplayLink *)displayLink
 {
+  _currentAnimationTimestamp = displayLink.timestamp;
+
   // We process all enqueued events first
   for (NSUInteger i = 0; i < _eventQueue.count; i++) {
     id<RCTEvent> event = _eventQueue[i];
