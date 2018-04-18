@@ -122,7 +122,7 @@ function runTiming(clock, value, dest, startStopClock = true) {
     easing: Easing.inOut(Easing.cubic),
   };
 
-  return block([
+  return [
     cond(clockRunning(clock), 0, [
       set(state.finished, 0),
       set(state.frameTime, 0),
@@ -134,7 +134,7 @@ function runTiming(clock, value, dest, startStopClock = true) {
     timing(clock, state, config),
     startStopClock && cond(state.finished, stopClock(clock)),
     state.position,
-  ]);
+  ];
 }
 
 function runDecay(clock, value, velocity) {
@@ -147,7 +147,7 @@ function runDecay(clock, value, velocity) {
 
   const config = { deceleration: 0.99 };
 
-  return block([
+  return [
     cond(clockRunning(clock), 0, [
       set(state.finished, 0),
       set(state.velocity, velocity),
@@ -159,7 +159,7 @@ function runDecay(clock, value, velocity) {
     decay(clock, state, config),
     cond(state.finished, stopClock(clock)),
     state.position,
-  ]);
+  ];
 }
 
 function bouncyPinch(
