@@ -4,24 +4,65 @@ import { PanGestureHandler, State } from 'react-native-gesture-handler';
 
 import Animated from '../Reanimated/Animated';
 
+// setInterval(() => {
+//   let iters = 1e8,
+//     sum = 0;
+//   while (iters-- > 0) sum += iters;
+// }, 300);
+
+const {
+  set,
+  cond,
+  eq,
+  add,
+  multiply,
+  lessThan,
+  spring,
+  startClock,
+  stopClock,
+  clockRunning,
+  sub,
+  defined,
+  Value,
+  Clock,
+  event,
+} = Animated;
+
+function runSpring(clock, value, velocity, dest) {
+  const state = {
+    finished: new Value(0),
+    velocity: new Value(0),
+    position: new Value(0),
+    time: new Value(0),
+  };
+
+  const config = {
+    damping: 7,
+    mass: 1,
+    stiffness: 121.6,
+    overshootClamping: false,
+    restSpeedThreshold: 0.001,
+    restDisplacementThreshold: 0.001,
+    toValue: new Value(0),
+  };
+
+  return [
+    cond(clockRunning(clock), 0, [
+      set(state.finished, 0),
+      set(state.velocity, velocity),
+      set(state.position, value),
+      set(config.toValue, dest),
+      startClock(clock),
+    ]),
+    spring(clock, state, config),
+    cond(state.finished, stopClock(clock)),
+    state.position,
+  ];
+}
+
 class Snappable extends Component {
   constructor(props) {
     super(props);
-
-    const {
-      set,
-      cond,
-      eq,
-      add,
-      multiply,
-      lessThan,
-      spring,
-      startClock,
-      stopClock,
-      Value,
-      Clock,
-      event,
-    } = Animated;
 
     const TOSS_SEC = 0.2;
 
@@ -30,62 +71,41 @@ class Snappable extends Component {
     const dragVX = new Value(0);
 
     this._onGestureEvent = event([
-      { nativeEvent: { translationX: dragX, velocityX: dragVX } },
+      { nativeEvent: { translationX: dragX, velocityX: dragVX, state: state } },
     ]);
-    this._onHandlerStateChange = event([{ nativeEvent: { state: state } }]);
 
-    const transX = new Value(0);
-    const prevState = new Value(-1);
+    const transX = new Value();
     const prevDragX = new Value(0);
 
     const clock = new Clock();
 
-    const springState = {
-      finished: new Value(0),
-      velocity: new Value(0),
-      position: new Value(0),
-      time: new Value(0),
-    };
-
-    const springConfig = {
-      damping: 7,
-      mass: 1,
-      stiffness: 121.6,
-      overshootClamping: false,
-      restSpeedThreshold: 0.001,
-      restDisplacementThreshold: 0.001,
-      toValue: new Value(0),
-    };
+    // If transX has not yet been defined we stay in the center (value is 0).
+    // When transX is defined, it means drag has already occured. In such a case
+    // we want to snap to -100 if the final position of the block is below 0
+    // and to 100 otherwise.
+    // We also take into account gesture velocity at the moment of release. To
+    // do that we calculate final position of the block as if it was moving for
+    // TOSS_SEC seconds with a constant speed the block had when released (dragVX).
+    // So the formula for the final position is:
+    //   finalX = transX + TOSS_SEC * dragVelocityX
+    //
+    const snapPoint = cond(
+      defined(transX),
+      cond(lessThan(add(transX, multiply(TOSS_SEC, dragVX)), 0), -100, 100),
+      0
+    );
 
     this._transX = cond(
       eq(state, State.ACTIVE),
       [
-        set(transX, add(transX, add(dragX, multiply(-1, prevDragX)))),
-        set(springState.time, clock),
+        stopClock(clock),
+        set(transX, add(transX, sub(dragX, prevDragX))),
         set(prevDragX, dragX),
-        set(prevState, state),
         transX,
       ],
       [
-        cond(eq(prevState, State.ACTIVE), [
-          set(springState.finished, 0),
-          set(springState.velocity, dragVX),
-          set(springState.position, transX),
-          set(
-            springConfig.toValue,
-            cond(
-              lessThan(add(transX, multiply(TOSS_SEC, dragVX)), 0),
-              -100,
-              100
-            )
-          ),
-          set(prevDragX, 0),
-          startClock(clock),
-        ]),
-        spring(clock, springState, springConfig),
-        cond(springState.finished, stopClock(clock)),
-        set(prevState, state),
-        set(transX, springState.position),
+        set(prevDragX, 0),
+        set(transX, runSpring(clock, transX, dragVX, snapPoint)),
       ]
     );
   }
@@ -96,7 +116,7 @@ class Snappable extends Component {
         {...rest}
         maxPointers={1}
         onGestureEvent={this._onGestureEvent}
-        onHandlerStateChange={this._onHandlerStateChange}>
+        onHandlerStateChange={this._onGestureEvent}>
         <Animated.View style={{ transform: [{ translateX: this._transX }] }}>
           {children}
         </Animated.View>

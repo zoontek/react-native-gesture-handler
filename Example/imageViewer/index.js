@@ -9,6 +9,12 @@ import {
 import Animated from '../Reanimated/Animated';
 import Easing from '../Reanimated/Easing';
 
+setInterval(() => {
+  let iters = 1e8,
+    sum = 0;
+  while (iters-- > 0) sum += iters;
+}, 300);
+
 const {
   set,
   cond,
@@ -379,30 +385,32 @@ class Viewer extends Component {
           simultaneousHandlers="pan"
           onGestureEvent={this._onPinchEvent}
           onHandlerStateChange={this._onPinchEvent}>
-          <PanGestureHandler
-            id="pan"
-            simultaneousHandlers="pinch"
-            onGestureEvent={this._onPanEvent}
-            onHandlerStateChange={this._onPanEvent}>
-            <Animated.Image
-              style={[
-                styles.image,
-                {
-                  transform: [
-                    { translateX: this._panTransX },
-                    { translateY: this._panTransY },
-                    { translateX: this._focalDisplacementX },
-                    { translateY: this._focalDisplacementY },
-                    { translateX: scaleTopLeftFixX },
-                    { translateY: scaleTopLeftFixY },
-                    { scale: this._scale },
-                  ],
-                },
-              ]}
-              resizeMode="stretch"
-              source={this.props.source}
-            />
-          </PanGestureHandler>
+          <Animated.View>
+            <PanGestureHandler
+              id="pan"
+              simultaneousHandlers="pinch"
+              onGestureEvent={this._onPanEvent}
+              onHandlerStateChange={this._onPanEvent}>
+              <Animated.Image
+                style={[
+                  styles.image,
+                  {
+                    transform: [
+                      { translateX: this._panTransX },
+                      { translateY: this._panTransY },
+                      { translateX: this._focalDisplacementX },
+                      { translateY: this._focalDisplacementY },
+                      { translateX: scaleTopLeftFixX },
+                      { translateY: scaleTopLeftFixY },
+                      { scale: this._scale },
+                    ],
+                  },
+                ]}
+                resizeMode="stretch"
+                source={this.props.source}
+              />
+            </PanGestureHandler>
+          </Animated.View>
         </PinchGestureHandler>
       </View>
     );
