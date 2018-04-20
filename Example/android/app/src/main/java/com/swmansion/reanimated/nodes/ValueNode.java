@@ -9,7 +9,7 @@ public class ValueNode extends Node<Double> {
 
   public ValueNode(int nodeID, ReadableMap config, NodesManager nodesManager) {
     super(nodeID, config, nodesManager);
-    mValue = config.getDouble("value");
+    mValue = config.hasKey("value") ? config.getDouble("value") : null;
   }
 
   public void setValue(Double value) {

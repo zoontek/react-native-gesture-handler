@@ -3,7 +3,6 @@ package com.swmansion.reanimated;
 import android.util.Log;
 import android.util.SparseArray;
 
-import com.facebook.infer.annotation.Assertions;
 import com.facebook.react.bridge.JSApplicationIllegalArgumentException;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReadableMap;
@@ -15,6 +14,8 @@ import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcherListener;
 import com.swmansion.reanimated.nodes.BezierNode;
 import com.swmansion.reanimated.nodes.BlockNode;
+import com.swmansion.reanimated.nodes.ClockNode;
+import com.swmansion.reanimated.nodes.ClockOpNode;
 import com.swmansion.reanimated.nodes.CondNode;
 import com.swmansion.reanimated.nodes.DebugNode;
 import com.swmansion.reanimated.nodes.Node;
@@ -25,17 +26,27 @@ import com.swmansion.reanimated.nodes.StyleNode;
 import com.swmansion.reanimated.nodes.TransformNode;
 import com.swmansion.reanimated.nodes.ValueNode;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 public class NodesManager implements EventDispatcherListener {
 
+  public interface OnAnimationFrame {
+    void onAnimationFrame();
+  }
+
   private final SparseArray<Node> mAnimatedNodes = new SparseArray<>();
   private final UIImplementation mUIImplementation;
   private final ReactChoreographer mReactChoreographer;
-  private final GuardedFrameCallback mFrameCallbck;
+  private final GuardedFrameCallback mChoreographerCallback;
+
+  private List<OnAnimationFrame> mFrameCallbacks = new ArrayList<>();
   private boolean mCallbackPosted;
   private boolean mWantRunUpdates;
 
+  public double currentFrameTimeMs;
   public final UpdateContext updateContext;
 
   public NodesManager(ReactContext context) {
@@ -45,7 +56,7 @@ public class NodesManager implements EventDispatcherListener {
     uiManager.getEventDispatcher().addListener(this);
 
     mReactChoreographer = ReactChoreographer.getInstance();
-    mFrameCallbck = new GuardedFrameCallback(context) {
+    mChoreographerCallback = new GuardedFrameCallback(context) {
       @Override
       protected void doFrameGuarded(long frameTimeNanos) {
         onAnimationFrame(frameTimeNanos);
@@ -72,7 +83,7 @@ public class NodesManager implements EventDispatcherListener {
       mCallbackPosted = true;
       mReactChoreographer.postFrameCallback(
               ReactChoreographer.CallbackType.NATIVE_ANIMATED_MODULE,
-              mFrameCallbck);
+              mChoreographerCallback);
     }
   }
 
@@ -81,12 +92,19 @@ public class NodesManager implements EventDispatcherListener {
       mCallbackPosted = false;
       mReactChoreographer.removeFrameCallback(
               ReactChoreographer.CallbackType.NATIVE_ANIMATED_MODULE,
-              mFrameCallbck);
+              mChoreographerCallback);
     }
   }
 
   private void onAnimationFrame(long frameTimeNanos) {
+    currentFrameTimeMs = frameTimeNanos / 1000000.;
     // TODO: process enqueued events
+
+    List<OnAnimationFrame> frameCallbacks = mFrameCallbacks;
+    mFrameCallbacks = new ArrayList<>(frameCallbacks.size());
+    for (int i = 0, size = frameCallbacks.size(); i < size; i++) {
+      frameCallbacks.get(i).onAnimationFrame();
+    }
 
     if (mWantRunUpdates) {
       Node.runUpdates(updateContext);
@@ -94,6 +112,11 @@ public class NodesManager implements EventDispatcherListener {
 
     mCallbackPosted = false;
     mWantRunUpdates = false;
+
+    if (!mFrameCallbacks.isEmpty()) {
+      // enqueue next frame
+      startUpdatingOnAnimationFrame();
+    }
   }
 
   public @Nullable Node findNodeById(int id) {
@@ -126,13 +149,13 @@ public class NodesManager implements EventDispatcherListener {
     } else if ("debug".equals(type)) {
       node = new DebugNode(nodeID, config, this);
     } else if ("clock".equals(type)) {
-      throw new JSApplicationIllegalArgumentException("Unsupported node type: " + type);
+      node = new ClockNode(nodeID, config, this);
     } else if ("clockStart".equals(type)) {
-      throw new JSApplicationIllegalArgumentException("Unsupported node type: " + type);
+      node = new ClockOpNode.ClockStartNode(nodeID, config, this);
     } else if ("clockStop".equals(type)) {
-      throw new JSApplicationIllegalArgumentException("Unsupported node type: " + type);
+      node = new ClockOpNode.ClockStopNode(nodeID, config, this);
     } else if ("clockTest".equals(type)) {
-      throw new JSApplicationIllegalArgumentException("Unsupported node type: " + type);
+      node = new ClockOpNode.ClockTestNode(nodeID, config, this);
     } else if ("call".equals(type)) {
       throw new JSApplicationIllegalArgumentException("Unsupported node type: " + type);
     } else if ("bezier".equals(type)) {
@@ -256,23 +279,10 @@ public class NodesManager implements EventDispatcherListener {
     startUpdatingOnAnimationFrame();
   }
 
-//  public void restoreDefaultValues(int animatedNodeTag, int viewTag) {
-//    AnimatedNode node = mAnimatedNodes.get(animatedNodeTag);
-//    // Restoring default values needs to happen before UIManager operations so it is
-//    // possible the node hasn't been created yet if it is being connected and
-//    // disconnected in the same batch. In that case we don't need to restore
-//    // default values since it will never actually update the view.
-//    if (node == null) {
-//      return;
-//    }
-//    if (!(node instanceof PropsAnimatedNode)) {
-//      throw new JSApplicationIllegalArgumentException("Animated node connected to view should be" +
-//              "of type " + PropsAnimatedNode.class.getName());
-//    }
-//    PropsAnimatedNode propsAnimatedNode = (PropsAnimatedNode) node;
-//    propsAnimatedNode.restoreDefaultValues();
-//  }
-//
+  public void postOnAnimation(OnAnimationFrame onAnimationFrame) {
+    mFrameCallbacks.add(onAnimationFrame);
+    startUpdatingOnAnimationFrame();
+  }
 
   @Override
   public void onEventDispatch(final Event event) {
