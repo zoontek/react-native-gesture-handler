@@ -13,8 +13,14 @@ import com.facebook.react.uimanager.UIImplementation;
 import com.facebook.react.uimanager.UIManagerModule;
 import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcherListener;
+import com.swmansion.reanimated.nodes.BezierNode;
+import com.swmansion.reanimated.nodes.BlockNode;
+import com.swmansion.reanimated.nodes.CondNode;
+import com.swmansion.reanimated.nodes.DebugNode;
 import com.swmansion.reanimated.nodes.Node;
+import com.swmansion.reanimated.nodes.OperatorNode;
 import com.swmansion.reanimated.nodes.PropsNode;
+import com.swmansion.reanimated.nodes.SetNode;
 import com.swmansion.reanimated.nodes.StyleNode;
 import com.swmansion.reanimated.nodes.TransformNode;
 import com.swmansion.reanimated.nodes.ValueNode;
@@ -81,7 +87,6 @@ public class NodesManager implements EventDispatcherListener {
 
   private void onAnimationFrame(long frameTimeNanos) {
     // TODO: process enqueued events
-    Log.e("CAT", "FRAME");
 
     if (mWantRunUpdates) {
       Node.runUpdates(updateContext);
@@ -111,15 +116,15 @@ public class NodesManager implements EventDispatcherListener {
     } else if ("value".equals(type)) {
       node = new ValueNode(nodeID, config, this);
     } else if ("block".equals(type)) {
-      throw new JSApplicationIllegalArgumentException("Unsupported node type: " + type);
+      node = new BlockNode(nodeID, config, this);
     } else if ("cond".equals(type)) {
-      throw new JSApplicationIllegalArgumentException("Unsupported node type: " + type);
+      node = new CondNode(nodeID, config, this);
     } else if ("op".equals(type)) {
-      throw new JSApplicationIllegalArgumentException("Unsupported node type: " + type);
+      node = new OperatorNode(nodeID, config, this);
     } else if ("set".equals(type)) {
-      throw new JSApplicationIllegalArgumentException("Unsupported node type: " + type);
+      node = new SetNode(nodeID, config, this);
     } else if ("debug".equals(type)) {
-      throw new JSApplicationIllegalArgumentException("Unsupported node type: " + type);
+      node = new DebugNode(nodeID, config, this);
     } else if ("clock".equals(type)) {
       throw new JSApplicationIllegalArgumentException("Unsupported node type: " + type);
     } else if ("clockStart".equals(type)) {
@@ -131,7 +136,7 @@ public class NodesManager implements EventDispatcherListener {
     } else if ("call".equals(type)) {
       throw new JSApplicationIllegalArgumentException("Unsupported node type: " + type);
     } else if ("bezier".equals(type)) {
-      throw new JSApplicationIllegalArgumentException("Unsupported node type: " + type);
+      node = new BezierNode(nodeID, config, this);
     } else if ("event".equals(type)) {
       throw new JSApplicationIllegalArgumentException("Unsupported node type: " + type);
     } else {
@@ -247,7 +252,6 @@ public class NodesManager implements EventDispatcherListener {
 
 
   public void postRunUpdatesAfterAnimation() {
-    Log.e("CAT", "POST RUN UPDATES");
     mWantRunUpdates = true;
     startUpdatingOnAnimationFrame();
   }

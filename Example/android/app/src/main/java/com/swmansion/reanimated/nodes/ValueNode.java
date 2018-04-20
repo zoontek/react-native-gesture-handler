@@ -12,7 +12,7 @@ public class ValueNode extends Node<Double> {
     mValue = config.getDouble("value");
   }
 
-  public void setValue(double value) {
+  public void setValue(Double value) {
     mValue = value;
     forceUpdateMemoizedValue(mValue);
   }

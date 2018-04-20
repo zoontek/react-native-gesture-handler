@@ -1,5 +1,6 @@
 package com.swmansion.reanimated;
 
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 
@@ -19,4 +20,12 @@ public class Utils {
     return mapping;
   }
 
+  public static int[] processIntArray(ReadableArray ary) {
+    int size = ary.size();
+    int[] res = new int[size];
+    for (int i = 0; i < size; i++) {
+      res[i] = ary.getInt(i);
+    }
+    return res;
+  }
 }
