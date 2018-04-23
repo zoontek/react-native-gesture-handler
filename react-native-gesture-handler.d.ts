@@ -21,6 +21,13 @@ import {
 
 /* GESTURE HANDLER STATE */
 
+export enum Directions {
+  RIGHT = 1,
+  LEFT = 2,
+  UP = 4,
+  DOWN = 8,
+}
+
 export enum State {
   UNDETERMINED = 0,
   FAILED,
@@ -147,6 +154,16 @@ export interface RotationGestureHandlerGestureEvent
     RotationGestureHandlerEventExtra;
 }
 
+export interface FlingGestureHandlerStateChangeEvent
+  extends GestureHandlerStateChangeEvent {
+  nativeEvent: GestureHandlerStateChangeNativeEvent;
+}
+
+export interface FlingGestureHandlerGestureEvent
+  extends GestureHandlerGestureEvent {
+  nativeEvent: GestureHandlerGestureEventNativeEvent;
+}
+
 /* GESTURE HANDLERS PROPERTIES */
 
 export interface GestureHandlerProperties {
@@ -165,8 +182,6 @@ export interface GestureHandlerProperties {
         vertical?: number;
         horizontal?: number;
       };
-  onGestureEvent?: (event: GestureHandlerGestureEvent) => void;
-  onHandlerStateChange?: (event: GestureHandlerStateChangeEvent) => void;
 }
 
 export interface NativeViewGestureHandlerProperties
@@ -191,6 +206,8 @@ export interface LongPressGestureHandlerProperties
   extends GestureHandlerProperties {
   minDurationMs?: number;
   maxDist?: number;
+  onGestureEvent?: (event: GestureHandlerGestureEvent) => void;
+  onHandlerStateChange?: (event: GestureHandlerStateChangeEvent) => void;
 }
 
 export interface PanGestureHandlerProperties extends GestureHandlerProperties {
@@ -225,6 +242,14 @@ export interface RotationGestureHandlerProperties
   ) => void;
 }
 
+export interface FlingGestureHandlerProperties
+  extends GestureHandlerProperties {
+  direction?: number;
+  numberOfPointers?: number;
+  onGestureEvent?: (event: FlingGestureHandlerGestureEvent) => void;
+  onHandlerStateChange?: (event: FlingGestureHandlerStateChangeEvent) => void;
+}
+
 /* GESTURE HANDLERS CLASSES */
 
 export class NativeViewGestureHandler extends React.Component<
@@ -251,6 +276,10 @@ export class RotationGestureHandler extends React.Component<
   RotationGestureHandlerProperties
 > {}
 
+export class FlingGestureHandler extends React.Component<
+  FlingGestureHandlerProperties
+> {}
+
 /* BUTTONS PROPERTIES */
 
 export interface RawButtonProperties
@@ -263,7 +292,7 @@ export interface BaseButtonProperties extends RawButtonProperties {
 }
 
 export interface RectButtonProperties extends BaseButtonProperties {
-  underlayColor?: string
+  underlayColor?: string;
 }
 
 export interface BorderlessButtonProperties extends RawButtonProperties {
@@ -323,9 +352,9 @@ export class FlatList extends React.Component<
 > {}
 
 export function gestureHandlerRootHOC(
-  Component: React.Component,
+  Component: React.ComponentType<any>,
   containerStyles?: StyleProp<ViewStyle>
-): React.Component;
+): React.ComponentType<any>;
 
 export interface SwipeableProperties {
   friction: number;

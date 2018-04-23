@@ -68,7 +68,7 @@ export type DrawerMovementOptionType = {
 
 export default class DrawerLayout extends Component<PropType, StateType> {
   static defaultProps = {
-    drawerWidth: 0,
+    drawerWidth: 200,
     drawerPosition: 'left',
     useNativeAnimations: true,
     drawerType: 'front',
@@ -182,13 +182,14 @@ export default class DrawerLayout extends Component<PropType, StateType> {
       translationX = Animated.add(dragX, dragOffsetFromOnStartPosition);
     }
 
-    this._openValue = Animated.add(translationX, drawerTranslation).interpolate(
-      {
-        inputRange: [0, drawerWidth],
-        outputRange: [0, 1],
-        extrapolate: 'clamp',
-      }
-    );
+    this._openValue = Animated.add(
+      translationX,
+      drawerTranslation
+    ).interpolate({
+      inputRange: [0, drawerWidth],
+      outputRange: [0, 1],
+      extrapolate: 'clamp',
+    });
 
     this._onGestureEvent = Animated.event(
       [{ nativeEvent: { translationX: dragXValue, x: touchXValue } }],
