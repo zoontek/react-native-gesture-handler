@@ -14,15 +14,6 @@ for (NSUInteger i = 1; i < inputNodes.count; i++) { \
 return @(acc); \
 }
 
-#define REA_REDUCE_FROM(OP, initial) ^(NSArray<REANode *> *inputNodes) { \
-CGFloat acc = initial; \
-for (NSUInteger i = 0; i < inputNodes.count; i++) { \
-CGFloat a = acc, b = [[inputNodes[i] value] doubleValue]; \
-acc = OP; \
-} \
-return @(acc); \
-}
-
 #define REA_SINGLE(OP) ^(NSArray<REANode *> *inputNodes) { \
 CGFloat a = [[inputNodes[0] value] doubleValue]; \
 return @(OP); \
@@ -59,8 +50,20 @@ return @(OP); \
             @"exp": REA_SINGLE(exp(a)),
 
             // logical
-            @"and": REA_REDUCE_FROM(a && b, true),
-            @"or": REA_REDUCE_FROM(a || b, false),
+            @"and": ^(NSArray<REANode *> *inputNodes) {
+              BOOL res = [[inputNodes[0] value] doubleValue];
+              for (NSUInteger i = 1; i < inputNodes.count && res; i++) {
+                res = res && [[inputNodes[i] value] doubleValue];
+              }
+              return res ? @(1.) : @(0.);
+            },
+            @"or": ^(NSArray<REANode *> *inputNodes) {
+              BOOL res = [[inputNodes[0] value] doubleValue];
+              for (NSUInteger i = 1; i < inputNodes.count && !res; i++) {
+                res = res || [[inputNodes[i] value] doubleValue];
+              }
+              return res ? @(1.) : @(0.);
+            },
             @"not": REA_SINGLE(!a),
             @"defined": ^(NSArray<REANode *> *inputNodes) {
               id val = [inputNodes[0] value];

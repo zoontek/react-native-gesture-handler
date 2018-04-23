@@ -20,10 +20,10 @@
 - (id)evaluate
 {
   id cond = [[self.nodesManager findNodeByID:_condNodeID] value];
-  if ([cond floatValue]) {
+  if ([cond doubleValue]) {
     return [[self.nodesManager findNodeByID:_ifBlockID] value];
   }
-  return [[self.nodesManager findNodeByID:_elseBlockID] value];
+  return _elseBlockID != nil ? [[self.nodesManager findNodeByID:_elseBlockID] value] : @(0);
 }
 
 @end

@@ -55,6 +55,7 @@
 - (void)postOnAnimation:(REAOnAnimationCallback)clb
 {
   [_onAnimationCallbacks addObject:clb];
+  [self startUpdatingOnAnimationFrame];
 }
 
 - (void)postAfterAnimation:(REAAfterAnimationCallback)clb
@@ -203,6 +204,18 @@
   }
 }
 
+- (void)disconnectNodeFromView:(REANodeID)nodeID
+                       viewTag:(NSNumber *)viewTag
+{
+  RCTAssertParam(nodeID);
+  REANode *node = _nodes[nodeID];
+  RCTAssertParam(node);
+
+  if ([node isKindOfClass:[REAPropsNode class]]) {
+    [(REAPropsNode *)node disconnectFromView:viewTag];
+  }
+}
+
 - (void)attachEvent:(NSNumber *)viewTag
           eventName:(NSString *)eventName
         eventNodeID:(REANodeID)eventNodeID
@@ -242,181 +255,5 @@
     [self startUpdatingOnAnimationFrame];
   }
 }
-
-//- (void)disconnectAnimatedNodeFromView:(nonnull NSNumber *)nodeTag
-//                               viewTag:(nonnull NSNumber *)viewTag
-//{
-//  REAReanimatedNode *node = _animationNodes[nodeTag];
-//  if ([node isKindOfClass:[RCTPropsAnimatedNode class]]) {
-//    [(RCTPropsAnimatedNode *)node disconnectFromView:viewTag];
-//  }
-//}
-//
-//- (void)restoreDefaultValues:(nonnull NSNumber *)nodeTag
-//{
-//  REAReanimatedNode *node = _animationNodes[nodeTag];
-//  // Restoring default values needs to happen before UIManager operations so it is
-//  // possible the node hasn't been created yet if it is being connected and
-//  // disconnected in the same batch. In that case we don't need to restore
-//  // default values since it will never actually update the view.
-//  if (node == nil) {
-//    return;
-//  }
-//  if (![node isKindOfClass:[RCTPropsAnimatedNode class]]) {
-//    RCTLogError(@"Not a props node.");
-//  }
-//  [(RCTPropsAnimatedNode *)node restoreDefaultValues];
-//}
-//
-//
-//#pragma mark -- Mutations
-//
-//- (void)setAnimatedNodeValue:(nonnull NSNumber *)nodeTag
-//                       value:(nonnull NSNumber *)value
-//{
-//  REAReanimatedNode *node = _animationNodes[nodeTag];
-//  if (![node isKindOfClass:[RCTValueAnimatedNode class]]) {
-//    RCTLogError(@"Not a value node.");
-//    return;
-//  }
-//  [self stopAnimationsForNode:node];
-//
-//  RCTValueAnimatedNode *valueNode = (RCTValueAnimatedNode *)node;
-//  valueNode.value = value.floatValue;
-//  [valueNode setNeedsUpdate];
-//}
-//
-//- (void)setAnimatedNodeOffset:(nonnull NSNumber *)nodeTag
-//                       offset:(nonnull NSNumber *)offset
-//{
-//  REAReanimatedNode *node = _animationNodes[nodeTag];
-//  if (![node isKindOfClass:[RCTValueAnimatedNode class]]) {
-//    RCTLogError(@"Not a value node.");
-//    return;
-//  }
-//
-//  RCTValueAnimatedNode *valueNode = (RCTValueAnimatedNode *)node;
-//  [valueNode setOffset:offset.floatValue];
-//  [valueNode setNeedsUpdate];
-//}
-//
-//- (void)flattenAnimatedNodeOffset:(nonnull NSNumber *)nodeTag
-//{
-//  REAReanimatedNode *node = _animationNodes[nodeTag];
-//  if (![node isKindOfClass:[RCTValueAnimatedNode class]]) {
-//    RCTLogError(@"Not a value node.");
-//    return;
-//  }
-//
-//  RCTValueAnimatedNode *valueNode = (RCTValueAnimatedNode *)node;
-//  [valueNode flattenOffset];
-//}
-//
-//- (void)extractAnimatedNodeOffset:(nonnull NSNumber *)nodeTag
-//{
-//  REAReanimatedNode *node = _animationNodes[nodeTag];
-//  if (![node isKindOfClass:[RCTValueAnimatedNode class]]) {
-//    RCTLogError(@"Not a value node.");
-//    return;
-//  }
-//
-//  RCTValueAnimatedNode *valueNode = (RCTValueAnimatedNode *)node;
-//  [valueNode extractOffset];
-//}
-//
-//#pragma mark -- Events
-//
-//- (void)addAnimatedEventToView:(nonnull NSNumber *)viewTag
-//                     eventName:(nonnull NSString *)eventName
-//                  eventMapping:(NSDictionary<NSString *, id> *)eventMapping
-//{
-//  NSNumber *nodeTag = [RCTConvert NSNumber:eventMapping[@"animatedValueTag"]];
-//  REAReanimatedNode *node = _animationNodes[nodeTag];
-//
-//  if (!node) {
-//    RCTLogError(@"Animated node with tag %@ does not exists", nodeTag);
-//    return;
-//  }
-//
-//  if (![node isKindOfClass:[RCTValueAnimatedNode class]]) {
-//    RCTLogError(@"Animated node connected to event should be of type RCTValueAnimatedNode");
-//    return;
-//  }
-//
-//  NSArray<NSString *> *eventPath = [RCTConvert NSStringArray:eventMapping[@"nativeEventPath"]];
-//
-//  RCTEventAnimation *driver =
-//    [[RCTEventAnimation alloc] initWithEventPath:eventPath valueNode:(RCTValueAnimatedNode *)node];
-//
-//  NSString *key = [NSString stringWithFormat:@"%@%@", viewTag, eventName];
-//  if (_eventDrivers[key] != nil) {
-//    [_eventDrivers[key] addObject:driver];
-//  } else {
-//    NSMutableArray<RCTEventAnimation *> *drivers = [NSMutableArray new];
-//    [drivers addObject:driver];
-//    _eventDrivers[key] = drivers;
-//  }
-//}
-//
-//- (void)removeAnimatedEventFromView:(nonnull NSNumber *)viewTag
-//                          eventName:(nonnull NSString *)eventName
-//                    animatedNodeTag:(nonnull NSNumber *)animatedNodeTag
-//{
-//  NSString *key = [NSString stringWithFormat:@"%@%@", viewTag, eventName];
-//  if (_eventDrivers[key] != nil) {
-//    if (_eventDrivers[key].count == 1) {
-//      [_eventDrivers removeObjectForKey:key];
-//    } else {
-//      NSMutableArray<RCTEventAnimation *> *driversForKey = _eventDrivers[key];
-//      for (NSUInteger i = 0; i < driversForKey.count; i++) {
-//        if (driversForKey[i].valueNode.nodeTag == animatedNodeTag) {
-//          [driversForKey removeObjectAtIndex:i];
-//          break;
-//        }
-//      }
-//    }
-//  }
-//}
-//
-//- (void)handleAnimatedEvent:(id<RCTEvent>)event
-//{
-//  if (_eventDrivers.count == 0) {
-//    return;
-//  }
-//
-//  NSString *key = [NSString stringWithFormat:@"%@%@", event.viewTag, event.eventName];
-//  NSMutableArray<RCTEventAnimation *> *driversForKey = _eventDrivers[key];
-//  if (driversForKey) {
-//    for (RCTEventAnimation *driver in driversForKey) {
-//      [self stopAnimationsForNode:driver.valueNode];
-//      [driver updateWithEvent:event];
-//    }
-//
-//    [self updateAnimations];
-//  }
-//}
-//
-//#pragma mark -- Listeners
-//
-//- (void)startListeningToAnimatedNodeValue:(nonnull NSNumber *)tag
-//                            valueObserver:(id<RCTValueAnimatedNodeObserver>)valueObserver
-//{
-//  REAReanimatedNode *node = _animationNodes[tag];
-//  if ([node isKindOfClass:[RCTValueAnimatedNode class]]) {
-//    ((RCTValueAnimatedNode *)node).valueObserver = valueObserver;
-//  }
-//}
-//
-//- (void)stopListeningToAnimatedNodeValue:(nonnull NSNumber *)tag
-//{
-//  REAReanimatedNode *node = _animationNodes[tag];
-//  if ([node isKindOfClass:[RCTValueAnimatedNode class]]) {
-//    ((RCTValueAnimatedNode *)node).valueObserver = nil;
-//  }
-//}
-//
-//
-#pragma mark -- Animation Loop
-
 
 @end

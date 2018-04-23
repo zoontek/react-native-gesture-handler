@@ -14,7 +14,6 @@
 {
   if ((self = [super initWithID:nodeID config:config])) {
     _isRunning = NO;
-    _lastTimestampMs = @(0);
   }
   return self;
 }
