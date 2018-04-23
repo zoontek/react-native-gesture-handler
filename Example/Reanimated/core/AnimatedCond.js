@@ -12,7 +12,7 @@ export default class AnimatedCond extends AnimatedNode {
         type: 'cond',
         cond: condition.__nodeID,
         ifBlock: ifBlock.__nodeID,
-        elseBlock: elseBlock.__nodeID,
+        elseBlock: elseBlock ? elseBlock.__nodeID : undefined,
       },
       [condition, ifBlock, elseBlock]
     );

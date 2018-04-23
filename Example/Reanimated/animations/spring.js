@@ -14,7 +14,6 @@ import {
   or,
   neq,
   and,
-  debug,
   lessThan,
   greaterThan,
 } from '../base';

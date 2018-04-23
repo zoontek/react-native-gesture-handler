@@ -7,6 +7,10 @@ import com.swmansion.reanimated.Utils;
 
 public class OperatorNode extends Node<Double> {
 
+  private static boolean truthy(Object value) {
+    return value != null && !value.equals(0.);
+  }
+
   private interface Operator {
     double evaluate(Node[] input);
   }
@@ -108,9 +112,9 @@ public class OperatorNode extends Node<Double> {
   private static final Operator AND = new Operator() {
     @Override
     public double evaluate(Node[] input) {
-      boolean res = ((Double) input[0].value()) != 0.;
+      boolean res = truthy(input[0].value());
       for (int i = 1; i < input.length && res; i++) {
-        res = res && ((Double) input[i].value()) != 0.;
+        res = res && truthy(input[i].value());
       }
       return res ? 1. : 0.;
     }
@@ -118,17 +122,17 @@ public class OperatorNode extends Node<Double> {
   private static final Operator OR = new Operator() {
     @Override
     public double evaluate(Node[] input) {
-      boolean res = ((Double) input[0].value()) != 0.;
+      boolean res = truthy(input[0].value());
       for (int i = 1; i < input.length && !res; i++) {
-        res = res || ((Double) input[i].value()) != 0.;
+        res = res || truthy(input[i].value());
       }
       return res ? 1. : 0.;
     }
   };
-  private static final Operator NOT = new SingleOperator() {
+  private static final Operator NOT = new Operator() {
     @Override
-    public double eval(Double x) {
-      return x == 0.0 ? 1. : 0.;
+    public double evaluate(Node[] input) {
+      return truthy(input[0].value()) ? 0. : 1.;
     }
   };
   private static final Operator DEFINED = new Operator() {
@@ -149,7 +153,7 @@ public class OperatorNode extends Node<Double> {
   private static final Operator EQ = new CompOperator() {
     @Override
     public boolean eval(Double x, Double y) {
-      return x == y;
+      return x.equals(y);
     }
   };
   private static final Operator GREATER_THAN = new CompOperator() {
@@ -173,7 +177,7 @@ public class OperatorNode extends Node<Double> {
   private static final Operator NEQ = new CompOperator() {
     @Override
     public boolean eval(Double x, Double y) {
-      return x != y;
+      return !x.equals(y);
     }
   };
 

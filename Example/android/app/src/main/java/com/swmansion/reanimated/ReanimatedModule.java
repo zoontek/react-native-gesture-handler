@@ -146,7 +146,7 @@ public class ReanimatedModule extends ReactContextBaseJavaModule implements
     mOperations.add(new UIThreadOperation() {
       @Override
       public void execute(NodesManager nodesManager) {
-        nodesManager.connectNodeToView(nodeID, viewTag);
+        nodesManager.disconnectNodeFromView(nodeID, viewTag);
       }
     });
   }
@@ -156,6 +156,7 @@ public class ReanimatedModule extends ReactContextBaseJavaModule implements
     mOperations.add(new UIThreadOperation() {
       @Override
       public void execute(NodesManager nodesManager) {
+        nodesManager.attachEvent(viewTag, eventName, eventNodeID);
       }
     });
   }
@@ -165,6 +166,7 @@ public class ReanimatedModule extends ReactContextBaseJavaModule implements
     mOperations.add(new UIThreadOperation() {
       @Override
       public void execute(NodesManager nodesManager) {
+        nodesManager.detachEvent(viewTag, eventName, eventNodeID);
       }
     });
   }

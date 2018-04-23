@@ -19,8 +19,8 @@ public class CondNode extends Node {
     Object cond = mNodesManager.findNodeById(mCondID).value();
     if (cond instanceof Number && ((Number) cond).doubleValue() != 0.0) {
       // This is not a good way to compare doubles but in this case it is what we want
-      return mIfBlockID != -1 ? mNodesManager.findNodeById(mIfBlockID).value() : 0;
+      return mIfBlockID != -1 ? mNodesManager.findNodeById(mIfBlockID).value() : 0.;
     }
-    return mElseBlockID != -1 ? mNodesManager.findNodeById(mElseBlockID).value() : 0;
+    return mElseBlockID != -1 ? mNodesManager.findNodeById(mElseBlockID).value() : 0.;
   }
 }

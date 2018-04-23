@@ -41,7 +41,11 @@ export const set = function(what, value) {
 };
 
 export const cond = function(cond, ifBlock, elseBlock) {
-  return new AnimatedCond(adapt(cond), adapt(ifBlock), adapt(elseBlock));
+  return new AnimatedCond(
+    adapt(cond),
+    adapt(ifBlock),
+    elseBlock === undefined ? undefined : adapt(elseBlock)
+  );
 };
 
 export const block = function(items) {

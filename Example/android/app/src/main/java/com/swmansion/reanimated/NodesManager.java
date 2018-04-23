@@ -6,6 +6,7 @@ import android.util.SparseArray;
 import com.facebook.react.bridge.JSApplicationIllegalArgumentException;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.modules.core.ReactChoreographer;
 import com.facebook.react.uimanager.GuardedFrameCallback;
 import com.facebook.react.uimanager.UIImplementation;
@@ -18,6 +19,7 @@ import com.swmansion.reanimated.nodes.ClockNode;
 import com.swmansion.reanimated.nodes.ClockOpNode;
 import com.swmansion.reanimated.nodes.CondNode;
 import com.swmansion.reanimated.nodes.DebugNode;
+import com.swmansion.reanimated.nodes.EventNode;
 import com.swmansion.reanimated.nodes.Node;
 import com.swmansion.reanimated.nodes.OperatorNode;
 import com.swmansion.reanimated.nodes.PropsNode;
@@ -27,7 +29,11 @@ import com.swmansion.reanimated.nodes.TransformNode;
 import com.swmansion.reanimated.nodes.ValueNode;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
 
@@ -38,12 +44,15 @@ public class NodesManager implements EventDispatcherListener {
   }
 
   private final SparseArray<Node> mAnimatedNodes = new SparseArray<>();
+  private final Map<String, EventNode> mEventMapping = new HashMap<>();
   private final UIImplementation mUIImplementation;
   private final ReactChoreographer mReactChoreographer;
   private final GuardedFrameCallback mChoreographerCallback;
+  private final UIManagerModule.CustomEventNamesResolver mCustomEventNamesResolver;
+  private final AtomicBoolean mCallbackPosted = new AtomicBoolean();
 
   private List<OnAnimationFrame> mFrameCallbacks = new ArrayList<>();
-  private boolean mCallbackPosted;
+  private ConcurrentLinkedQueue<Event> mEventQueue = new ConcurrentLinkedQueue<>();
   private boolean mWantRunUpdates;
 
   public double currentFrameTimeMs;
@@ -53,6 +62,7 @@ public class NodesManager implements EventDispatcherListener {
     UIManagerModule uiManager = context.getNativeModule(UIManagerModule.class);
     updateContext = new UpdateContext();
     mUIImplementation = uiManager.getUIImplementation();
+    mCustomEventNamesResolver = uiManager.getDirectEventNamesResolver();
     uiManager.getEventDispatcher().addListener(this);
 
     mReactChoreographer = ReactChoreographer.getInstance();
@@ -65,22 +75,20 @@ public class NodesManager implements EventDispatcherListener {
   }
 
   public void onHostPause() {
-    if (mCallbackPosted) {
+    if (mCallbackPosted.get()) {
       stopUpdatingOnAnimationFrame();
-      mCallbackPosted = true;
+      mCallbackPosted.set(true);
     }
   }
 
   public void onHostResume() {
-    if (mCallbackPosted) {
-      mCallbackPosted = false;
+    if (mCallbackPosted.getAndSet(false)) {
       startUpdatingOnAnimationFrame();
     }
   }
 
   private void startUpdatingOnAnimationFrame() {
-    if (!mCallbackPosted) {
-      mCallbackPosted = true;
+    if (!mCallbackPosted.getAndSet(true)) {
       mReactChoreographer.postFrameCallback(
               ReactChoreographer.CallbackType.NATIVE_ANIMATED_MODULE,
               mChoreographerCallback);
@@ -88,8 +96,7 @@ public class NodesManager implements EventDispatcherListener {
   }
 
   private void stopUpdatingOnAnimationFrame() {
-    if (mCallbackPosted) {
-      mCallbackPosted = false;
+    if (mCallbackPosted.getAndSet(false)) {
       mReactChoreographer.removeFrameCallback(
               ReactChoreographer.CallbackType.NATIVE_ANIMATED_MODULE,
               mChoreographerCallback);
@@ -98,22 +105,27 @@ public class NodesManager implements EventDispatcherListener {
 
   private void onAnimationFrame(long frameTimeNanos) {
     currentFrameTimeMs = frameTimeNanos / 1000000.;
-    // TODO: process enqueued events
 
-    List<OnAnimationFrame> frameCallbacks = mFrameCallbacks;
-    mFrameCallbacks = new ArrayList<>(frameCallbacks.size());
-    for (int i = 0, size = frameCallbacks.size(); i < size; i++) {
-      frameCallbacks.get(i).onAnimationFrame();
+    while (!mEventQueue.isEmpty()) {
+      handleEvent(mEventQueue.poll());
+    }
+
+    if (!mFrameCallbacks.isEmpty()) {
+      List<OnAnimationFrame> frameCallbacks = mFrameCallbacks;
+      mFrameCallbacks = new ArrayList<>(frameCallbacks.size());
+      for (int i = 0, size = frameCallbacks.size(); i < size; i++) {
+        frameCallbacks.get(i).onAnimationFrame();
+      }
     }
 
     if (mWantRunUpdates) {
       Node.runUpdates(updateContext);
     }
 
-    mCallbackPosted = false;
+    mCallbackPosted.set(false);
     mWantRunUpdates = false;
 
-    if (!mFrameCallbacks.isEmpty()) {
+    if (!mFrameCallbacks.isEmpty() || !mEventQueue.isEmpty()) {
       // enqueue next frame
       startUpdatingOnAnimationFrame();
     }
@@ -161,7 +173,7 @@ public class NodesManager implements EventDispatcherListener {
     } else if ("bezier".equals(type)) {
       node = new BezierNode(nodeID, config, this);
     } else if ("event".equals(type)) {
-      throw new JSApplicationIllegalArgumentException("Unsupported node type: " + type);
+      node = new EventNode(nodeID, config, this);
     } else {
       throw new JSApplicationIllegalArgumentException("Unsupported node type: " + type);
     }
@@ -227,52 +239,23 @@ public class NodesManager implements EventDispatcherListener {
   }
 
   public void attachEvent(int viewTag, String eventName, int eventNodeID) {
-//    int nodeTag = eventMapping.getInt("animatedValueTag");
-//    AnimatedNode node = mAnimatedNodes.get(nodeTag);
-//    if (node == null) {
-//      throw new JSApplicationIllegalArgumentException("Animated node with tag " + nodeTag +
-//              " does not exists");
-//    }
-//    if (!(node instanceof ValueAnimatedNode)) {
-//      throw new JSApplicationIllegalArgumentException("Animated node connected to event should be" +
-//              "of type " + ValueAnimatedNode.class.getName());
-//    }
-//
-//    ReadableArray path = eventMapping.getArray("nativeEventPath");
-//    List<String> pathList = new ArrayList<>(path.size());
-//    for (int i = 0; i < path.size(); i++) {
-//      pathList.add(path.getString(i));
-//    }
-//
-//    EventAnimationDriver event = new EventAnimationDriver(pathList, (ValueAnimatedNode) node);
-//    String key = viewTag + eventName;
-//    if (mEventDrivers.containsKey(key)) {
-//      mEventDrivers.get(key).add(event);
-//    } else {
-//      List<EventAnimationDriver> drivers = new ArrayList<>(1);
-//      drivers.add(event);
-//      mEventDrivers.put(key, drivers);
-//    }
+    String key = viewTag + eventName;
+
+    EventNode node = (EventNode) mAnimatedNodes.get(eventNodeID);
+    if (node == null) {
+      throw new JSApplicationIllegalArgumentException("Event node " + eventNodeID + " does not exists");
+    }
+    if (mEventMapping.containsKey(key)) {
+      throw new JSApplicationIllegalArgumentException("Event handler already set for the given view and event type");
+    }
+
+    mEventMapping.put(key, node);
   }
 
   public void detachEvent(int viewTag, String eventName, int eventNodeID) {
-//    String key = viewTag + eventName;
-//    if (mEventDrivers.containsKey(key)) {
-//      List<EventAnimationDriver> driversForKey = mEventDrivers.get(key);
-//      if (driversForKey.size() == 1) {
-//        mEventDrivers.remove(viewTag + eventName);
-//      } else {
-//        ListIterator<EventAnimationDriver> it = driversForKey.listIterator();
-//        while (it.hasNext()) {
-//          if (it.next().mValueNode.mTag == animatedValueTag) {
-//            it.remove();
-//            break;
-//          }
-//        }
-//      }
-//    }
+    String key = viewTag + eventName;
+    mEventMapping.remove(key);
   }
-
 
   public void postRunUpdatesAfterAnimation() {
     mWantRunUpdates = true;
@@ -285,77 +268,27 @@ public class NodesManager implements EventDispatcherListener {
   }
 
   @Override
-  public void onEventDispatch(final Event event) {
-//    // Events can be dispatched from any thread so we have to make sure handleEvent is run from the
-//    // UI thread.
-//    if (UiThreadUtil.isOnUiThread()) {
-//      handleEvent(event);
-//    } else {
-//      UiThreadUtil.runOnUiThread(new Runnable() {
-//        @Override
-//        public void run() {
-//          handleEvent(event);
-//        }
-//      });
-//    }
-//  }
-//
-//  private void handleEvent(Event event) {
-//    if (!mEventDrivers.isEmpty()) {
-//      // If the event has a different name in native convert it to it's JS name.
-//      String eventName = mCustomEventNamesResolver.resolveCustomEventName(event.getEventName());
-//      List<EventAnimationDriver> driversForKey = mEventDrivers.get(event.getViewTag() + eventName);
-//      if (driversForKey != null) {
-//        for (EventAnimationDriver driver : driversForKey) {
-//          stopAnimationsForNode(driver.mValueNode);
-//          event.dispatch(driver);
-//          mRunUpdateNodeList.add(driver.mValueNode);
-//        }
-//        updateNodes(mRunUpdateNodeList);
-//        mRunUpdateNodeList.clear();
-//      }
-//    }
+  public void onEventDispatch(Event event) {
+    // Events can be dispatched from any thread so we have to make sure handleEvent is run from the
+    // UI thread.
+    if (UiThreadUtil.isOnUiThread()) {
+      handleEvent(event);
+    } else {
+      mEventQueue.offer(event);
+      startUpdatingOnAnimationFrame();
+    }
   }
 
-  public void runUpdates(long frameTimeNanos) {
-//    UiThreadUtil.assertOnUiThread();
-//    boolean hasFinishedAnimations = false;
-//
-//    for (int i = 0; i < mUpdatedNodes.size(); i++) {
-//      AnimatedNode node = mUpdatedNodes.valueAt(i);
-//      mRunUpdateNodeList.add(node);
-//    }
-//
-//    // Clean mUpdatedNodes queue
-//    mUpdatedNodes.clear();
-//
-//    for (int i = 0; i < mActiveAnimations.size(); i++) {
-//      AnimationDriver animation = mActiveAnimations.valueAt(i);
-//      animation.runAnimationStep(frameTimeNanos);
-//      AnimatedNode valueNode = animation.mAnimatedValue;
-//      mRunUpdateNodeList.add(valueNode);
-//      if (animation.mHasFinished) {
-//        hasFinishedAnimations = true;
-//      }
-//    }
-//
-//    updateNodes(mRunUpdateNodeList);
-//    mRunUpdateNodeList.clear();
-//
-//    // Cleanup finished animations. Iterate over the array of animations and override ones that has
-//    // finished, then resize `mActiveAnimations`.
-//    if (hasFinishedAnimations) {
-//      for (int i = mActiveAnimations.size() - 1; i >= 0; i--) {
-//        AnimationDriver animation = mActiveAnimations.valueAt(i);
-//        if (animation.mHasFinished) {
-//          if (animation.mEndCallback != null) {
-//            WritableMap endCallbackResponse = Arguments.createMap();
-//            endCallbackResponse.putBoolean("finished", true);
-//            animation.mEndCallback.invoke(endCallbackResponse);
-//          }
-//          mActiveAnimations.removeAt(i);
-//        }
-//      }
-//    }
+  private void handleEvent(Event event) {
+    if (!mEventMapping.isEmpty()) {
+      // If the event has a different name in native convert it to it's JS name.
+      String eventName = mCustomEventNamesResolver.resolveCustomEventName(event.getEventName());
+      int viewTag = event.getViewTag();
+      String key = viewTag + eventName;
+      EventNode node = mEventMapping.get(key);
+      if (node != null) {
+        event.dispatch(node);
+      }
+    }
   }
 }
