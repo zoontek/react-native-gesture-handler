@@ -9,11 +9,11 @@ import {
 import Animated from '../Reanimated/Animated';
 import Easing from '../Reanimated/Easing';
 
-setInterval(() => {
-  let iters = 1e8,
-    sum = 0;
-  while (iters-- > 0) sum += iters;
-}, 300);
+// setInterval(() => {
+//   let iters = 1e8,
+//     sum = 0;
+//   while (iters-- > 0) sum += iters;
+// }, 300);
 
 const {
   set,

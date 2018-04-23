@@ -90,9 +90,9 @@ class Snappable extends Component {
     //   finalX = transX + TOSS_SEC * dragVelocityX
     //
     const snapPoint = cond(
-      defined(transX),
-      cond(lessThan(add(transX, multiply(TOSS_SEC, dragVX)), 0), -100, 100),
-      0
+      lessThan(add(transX, multiply(TOSS_SEC, dragVX)), 0),
+      -100,
+      100
     );
 
     this._transX = cond(
@@ -105,7 +105,10 @@ class Snappable extends Component {
       ],
       [
         set(prevDragX, 0),
-        set(transX, runSpring(clock, transX, dragVX, snapPoint)),
+        set(
+          transX,
+          cond(defined(transX), runSpring(clock, transX, dragVX, snapPoint), 0)
+        ),
       ]
     );
   }
