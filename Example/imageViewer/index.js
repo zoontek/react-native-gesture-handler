@@ -132,7 +132,7 @@ function runTiming(clock, value, dest, startStopClock = true) {
       startStopClock && startClock(clock),
     ]),
     timing(clock, state, config),
-    startStopClock && cond(state.finished, stopClock(clock)),
+    cond(state.finished, startStopClock && stopClock(clock)),
     state.position,
   ];
 }
@@ -388,6 +388,7 @@ class Viewer extends Component {
           <Animated.View>
             <PanGestureHandler
               id="pan"
+              avgTouches
               simultaneousHandlers="pinch"
               onGestureEvent={this._onPanEvent}
               onHandlerStateChange={this._onPanEvent}>

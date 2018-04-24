@@ -67,6 +67,7 @@ public abstract class Node<T> {
   }
 
   protected final void forceUpdateMemoizedValue(T value) {
+    mMemoizedValue = value;
     markUpdated();
   }
 
