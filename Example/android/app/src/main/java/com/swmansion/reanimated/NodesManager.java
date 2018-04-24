@@ -7,6 +7,8 @@ import com.facebook.react.bridge.JSApplicationIllegalArgumentException;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.UiThreadUtil;
+import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.modules.core.ReactChoreographer;
 import com.facebook.react.uimanager.GuardedFrameCallback;
 import com.facebook.react.uimanager.UIImplementation;
@@ -20,6 +22,7 @@ import com.swmansion.reanimated.nodes.ClockOpNode;
 import com.swmansion.reanimated.nodes.CondNode;
 import com.swmansion.reanimated.nodes.DebugNode;
 import com.swmansion.reanimated.nodes.EventNode;
+import com.swmansion.reanimated.nodes.JSCallNode;
 import com.swmansion.reanimated.nodes.Node;
 import com.swmansion.reanimated.nodes.OperatorNode;
 import com.swmansion.reanimated.nodes.PropsNode;
@@ -46,6 +49,7 @@ public class NodesManager implements EventDispatcherListener {
   private final SparseArray<Node> mAnimatedNodes = new SparseArray<>();
   private final Map<String, EventNode> mEventMapping = new HashMap<>();
   private final UIImplementation mUIImplementation;
+  private final DeviceEventManagerModule.RCTDeviceEventEmitter mEventEmitter;
   private final ReactChoreographer mReactChoreographer;
   private final GuardedFrameCallback mChoreographerCallback;
   private final UIManagerModule.CustomEventNamesResolver mCustomEventNamesResolver;
@@ -64,6 +68,8 @@ public class NodesManager implements EventDispatcherListener {
     mUIImplementation = uiManager.getUIImplementation();
     mCustomEventNamesResolver = uiManager.getDirectEventNamesResolver();
     uiManager.getEventDispatcher().addListener(this);
+
+    mEventEmitter = context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
 
     mReactChoreographer = ReactChoreographer.getInstance();
     mChoreographerCallback = new GuardedFrameCallback(context) {
@@ -169,7 +175,7 @@ public class NodesManager implements EventDispatcherListener {
     } else if ("clockTest".equals(type)) {
       node = new ClockOpNode.ClockTestNode(nodeID, config, this);
     } else if ("call".equals(type)) {
-      throw new JSApplicationIllegalArgumentException("Unsupported node type: " + type);
+      node = new JSCallNode(nodeID, config, this);
     } else if ("bezier".equals(type)) {
       node = new BezierNode(nodeID, config, this);
     } else if ("event".equals(type)) {
@@ -290,5 +296,9 @@ public class NodesManager implements EventDispatcherListener {
         event.dispatch(node);
       }
     }
+  }
+
+  public void sendEvent(String name, WritableMap body) {
+    mEventEmitter.emit(name, body);
   }
 }
