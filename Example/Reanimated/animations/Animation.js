@@ -4,12 +4,6 @@
 class Animation {
   start(fromValue, onUpdate, onEnd, previousAnimation, animatedValue) {}
   stop() {}
-  // Helper function for subclasses to make sure onEnd is only called once.
-  __debouncedOnEnd(result) {
-    const onEnd = this.__onEnd;
-    this.__onEnd = null;
-    onEnd && onEnd(result);
-  }
 }
 
 export default Animation;

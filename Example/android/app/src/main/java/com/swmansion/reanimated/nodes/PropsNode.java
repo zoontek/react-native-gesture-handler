@@ -2,8 +2,10 @@ package com.swmansion.reanimated.nodes;
 
 import android.view.View;
 
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.JavaOnlyMap;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.ReactStylesDiffMap;
 import com.facebook.react.uimanager.UIImplementation;
@@ -52,6 +54,19 @@ public class PropsNode extends Node<WritableMap> implements FinalNode {
         mPropMap.putDouble(entry.getKey(), (Double) node.value());
       }
     }
+
+    WritableMap props = Arguments.createMap();
+    ReadableMapKeySetIterator iter = mPropMap.keySetIterator();
+    while (iter.hasNextKey()) {
+      String key = iter.nextKey();
+      props.putDouble(key, mPropMap.getDouble(key));
+    }
+
+    WritableMap eventData = Arguments.createMap();
+    eventData.putInt("viewTag", mConnectedViewTag);
+    eventData.putMap("props", props);
+    mNodesManager.sendEvent("onReanimatedPropsChange", eventData);
+
     return mPropMap;
   }
 
