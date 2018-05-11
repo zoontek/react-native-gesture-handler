@@ -2,16 +2,21 @@
   "name": "GestureHandlerExample",
   "version": "0.0.1",
   "private": true,
+  "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
-    "test": "jest"
+    "test": "jest",
+    "expo-start": "react-native-scripts start",
+    "android": "react-native-scripts android",
+    "ios": "react-native-scripts ios"
   },
   "dependencies": {
     "react": "^16.2.0",
-    "react-native": "^0.51.0",
+    "react-native": "^0.55.2",
     "react-native-gesture-handler": "file:../",
     "react-native-vector-icons": "^4.4.3",
-    "react-navigation": "^1.0.0-beta.23"
+    "react-navigation": "^1.0.0-beta.23",
+    "expo": "^27.0.1"
   },
   "jest": {
     "preset": "react-native"
@@ -21,6 +26,7 @@
     "babel-preset-react-native": "^4.0.0",
     "jest": "^22.0.4",
     "jest-react-native": "^18.0.0",
-    "react-test-renderer": "^16.2.0"
+    "react-test-renderer": "^16.2.0",
+    "react-native-scripts": "1.14.0"
   }
 }
