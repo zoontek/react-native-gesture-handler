@@ -47,26 +47,28 @@ export class TapOrPan extends Component {
         waitFor="pan"
         onHandlerStateChange={this._onTapHandlerStateChange}
         shouldCancelWhenOutside>
-        <PanGestureHandler
-          id="pan"
-          minDeltaX={20}
-          onGestureEvent={this._onPanGestureEvent}
-          shouldCancelWhenOutside>
-          <View style={styles.horizontalPan}>
-            <Animated.View
-              style={[
-                styles.circle,
-                {
-                  transform: [
-                    {
-                      translateX: this._translateX,
-                    },
-                  ],
-                },
-              ]}
-            />
-          </View>
-        </PanGestureHandler>
+        <Animated.View style={styles.wrapper}>
+          <PanGestureHandler
+            id="pan"
+            minDeltaX={20}
+            onGestureEvent={this._onPanGestureEvent}
+            shouldCancelWhenOutside>
+            <Animated.View style={styles.horizontalPan}>
+              <Animated.View
+                style={[
+                  styles.circle,
+                  {
+                    transform: [
+                      {
+                        translateX: this._translateX,
+                      },
+                    ],
+                  },
+                ]}
+              />
+            </Animated.View>
+          </PanGestureHandler>
+        </Animated.View>
       </TapGestureHandler>
     );
   }
@@ -96,5 +98,8 @@ const styles = StyleSheet.create({
     borderRadius: circleRadius,
     height: circleRadius * 2,
     width: circleRadius * 2,
+  },
+  wrapper: {
+    flex: 1,
   },
 });
