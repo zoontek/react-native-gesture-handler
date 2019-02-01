@@ -7,6 +7,7 @@ import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.ViewGroupManager;
 import com.facebook.react.uimanager.ViewManager;
+import com.facebook.react.views.modal.ReactModalHostView;
 import com.facebook.react.views.view.ReactViewManager;
 
 import java.util.Arrays;
@@ -16,16 +17,21 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 public class RNGestureHandlerPackage implements ReactPackage {
+  private ReactModalHostView mReactModalHostView;
 
   @Override
   public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
     return Arrays.<NativeModule>asList(new RNGestureHandlerModule(reactContext));
   }
 
+  public RNGestureHandlerPackage(ReactModalHostView reactModalHostView) {
+    mReactModalHostView = reactModalHostView;
+  }
+
   @Override
   public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
     return Arrays.<ViewManager>asList(
-            new RNGestureHandlerRootViewManager(),
+            new RNGestureHandlerRootViewManager(mReactModalHostView),
             new RNGestureHandlerButtonViewManager());
   }
 }

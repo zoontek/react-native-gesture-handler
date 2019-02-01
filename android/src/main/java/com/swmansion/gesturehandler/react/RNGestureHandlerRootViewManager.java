@@ -4,6 +4,7 @@ import com.facebook.react.common.MapBuilder;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.ViewGroupManager;
+import com.facebook.react.views.modal.ReactModalHostView;
 
 import java.util.Map;
 
@@ -16,6 +17,11 @@ import javax.annotation.Nullable;
  */
 @ReactModule(name = RNGestureHandlerRootViewManager.REACT_CLASS)
 public class RNGestureHandlerRootViewManager extends ViewGroupManager<RNGestureHandlerRootView> {
+  private ReactModalHostView mReactModalHostView;
+
+  public RNGestureHandlerRootViewManager(ReactModalHostView reactModalHostView) {
+    mReactModalHostView = reactModalHostView;
+  }
 
   public static final String REACT_CLASS = "GestureHandlerRootView";
 
@@ -26,7 +32,7 @@ public class RNGestureHandlerRootViewManager extends ViewGroupManager<RNGestureH
 
   @Override
   protected RNGestureHandlerRootView createViewInstance(ThemedReactContext reactContext) {
-    return new RNGestureHandlerRootView(reactContext);
+    return new RNGestureHandlerRootView(reactContext, mReactModalHostView);
   }
 
   @Override

@@ -1,159 +1,137 @@
-import React from 'react';
-import { Text, View, FlatList, StyleSheet, YellowBox } from 'react-native';
-import { createStackNavigator } from 'react-navigation';
-import { RectButton, ScrollView } from 'react-native-gesture-handler';
+import * as React from 'react';
+import { Text, View, StyleSheet, Modal, Linking, Button } from 'react-native';
+import { BaseButton, TapGestureHandler } from 'react-native-gesture-handler';
 
-import SwipeableTable from './swipeable';
-import Rows from './rows';
-import Multitap from './multitap';
-import Draggable from './draggable';
-import ScaleAndRotate from './scaleAndRotate';
-import PagerAndDrawer from './pagerAndDrawer';
-import PanAndScroll from './panAndScroll';
-import PanResponder from './panResponder';
-import Bouncing from './bouncing';
-import HorizontalDrawer from './horizontalDrawer';
-import Fling from './fling/index';
-import doubleDraggable from './doubleDraggable';
-import ChatHeads from './chatHeads';
-import { ComboWithGHScroll, ComboWithRNScroll } from './combo';
-import BottomSheet from './bottomSheet/index';
-import doubleScalePinchAndRotate from './doubleScalePinchAndRotate';
-import forceTouch from './forcetouch';
-import { TouchablesIndex, TouchableExample } from './touchables';
+export default class App extends React.Component {
+  constructor(props) {
+    super(props);
 
-YellowBox.ignoreWarnings([
-  'Warning: isMounted(...) is deprecated',
-  'Module RCTImageLoader',
-]);
-// refers to bug in React Navigation which should be fixed soon
-// https://github.com/react-navigation/react-navigation/issues/3956
+    this.state = {
+      modalVisible: false,
+    };
+  }
 
-const SCREENS = {
-  Rows: { screen: Rows, title: 'Table rows & buttons' },
-  Multitap: { screen: Multitap },
-  Draggable: { screen: Draggable },
-  ScaleAndRotate: { screen: ScaleAndRotate, title: 'Scale, rotate & tilt' },
-  ScaleAndRotateSimultaneously: {
-    screen: doubleScalePinchAndRotate,
-    title: 'Scale, rotate & tilt & more',
-  },
-  PagerAndDrawer: { screen: PagerAndDrawer, title: 'Android pager & drawer' },
-  HorizontalDrawer: {
-    screen: HorizontalDrawer,
-    title: 'Gesture handler based DrawerLayout',
-  },
-  SwipeableTable: {
-    screen: SwipeableTable,
-    title: 'Gesture handler based SwipeableRow',
-  },
-  PanAndScroll: {
-    screen: PanAndScroll,
-    title: 'Horizontal pan or tap in ScrollView',
-  },
-  Fling: {
-    screen: Fling,
-    title: 'Flinghandler',
-  },
-  PanResponder: { screen: PanResponder },
-  Bouncing: { screen: Bouncing, title: 'Twist & bounce back animation' },
-  // ChatHeads: {
-  //   screen: ChatHeads,
-  //   title: 'Chat Heads (no native animated support yet)',
-  // },
-  Combo: { screen: ComboWithGHScroll },
-  BottomSheet: {
-    title: 'BottomSheet gestures interactions',
-    screen: BottomSheet,
-  },
-  ComboWithRNScroll: {
-    screen: ComboWithRNScroll,
-    title: "Combo with RN's ScrollView",
-  },
-  doubleDraggable: {
-    screen: doubleDraggable,
-    title: 'Two handlers simultaneously',
-  },
-  touchables: {
-    screen: TouchablesIndex,
-    title: 'Touchables',
-  },
-  forceTouch: {
-    screen: forceTouch,
-    title: 'Force touch',
-  },
-};
-
-class MainScreen extends React.Component {
-  static navigationOptions = {
-    title: '✌️ Gesture Handler Demo',
+  toggleModal = () => {
+    this.setState({
+      modalVisible: !this.state.modalVisible,
+    });
   };
+
+  goToUrl = url => {
+    Linking.canOpenURL(url).then(response => Linking.openURL(url));
+  };
+
   render() {
-    const data = Object.keys(SCREENS).map(key => ({ key }));
     return (
-      <FlatList
-        style={styles.list}
-        data={data}
-        ItemSeparatorComponent={ItemSeparator}
-        renderItem={props => (
-          <MainScreenItem
-            {...props}
-            onPressItem={({ key }) => this.props.navigation.navigate(key)}
-          />
-        )}
-        renderScrollComponent={props => <ScrollView {...props} />}
-      />
+      <View style={styles.container}>
+        <TapGestureHandler
+          onHandlerStateChange={({ nativeEvent }) => console.warn(nativeEvent)}>
+          <Text>XXX</Text>
+        </TapGestureHandler>
+        <Text>
+          onGestureEvent is not trigger when GestureHandler components is on a
+          modal on Android
+        </Text>
+        <Text
+          style={styles.link}
+          onPress={() =>
+            this.goToUrl(
+              'https://github.com/kmagiera/react-native-gesture-handler/issues/139'
+            )
+          }>
+          (See:
+          https://github.com/kmagiera/react-native-gesture-handler/issues/139)
+        </Text>
+
+        <Text>Open the Modal dialog by push on the button below</Text>
+
+        <View style={styles.devider} />
+
+        <BaseButton style={styles.button} onPress={() => this.toggleModal()}>
+          <Text>Open Modal Dialog</Text>
+        </BaseButton>
+
+        <Modal
+          visible={this.state.modalVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => this.toggleModal()}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalInner}>
+              <Text>
+                Button #1 can close the dialog (Standard React Native Button
+                component)
+              </Text>
+
+              <TapGestureHandler
+                onHandlerStateChange={({ nativeEvent }) =>
+                  console.warn(nativeEvent)
+                }>
+                <Text>XXX</Text>
+              </TapGestureHandler>
+
+              <View style={styles.devider} />
+
+              <Text>
+                Button #2 does not respond to pressing on Android (Gesture
+                Handler "BaseButton")
+              </Text>
+
+              <View style={styles.devider} />
+
+              <View style={styles.modalFooter}>
+                <Button title="Button #1" onPress={() => this.toggleModal()} />
+                <BaseButton
+                  style={styles.button}
+                  onPress={() => this.toggleModal()}>
+                  <Text>Button #2</Text>
+                </BaseButton>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </View>
     );
   }
 }
-
-const ItemSeparator = () => <View style={styles.separator} />;
-
-class MainScreenItem extends React.Component {
-  _onPress = () => this.props.onPressItem(this.props.item);
-  render() {
-    const { key } = this.props.item;
-    return (
-      <RectButton style={styles.button} onPress={this._onPress}>
-        <Text style={styles.buttonText}>{SCREENS[key].title || key}</Text>
-      </RectButton>
-    );
-  }
-}
-
-const ExampleApp = createStackNavigator(
-  {
-    Main: { screen: MainScreen },
-    ...SCREENS,
-    TouchableExample: {
-      screen: TouchableExample,
-      title: 'Touchables',
-    },
-  },
-  {
-    initialRouteName: 'Main',
-  }
-);
 
 const styles = StyleSheet.create({
-  list: {
-    backgroundColor: '#EFEFF4',
-  },
-  separator: {
-    height: 1,
-    backgroundColor: '#DBDBE0',
-  },
-  buttonText: {
-    backgroundColor: 'transparent',
-  },
-  button: {
+  container: {
     flex: 1,
-    height: 60,
-    padding: 10,
-    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
+    paddingHorizontal: 60,
+  },
+  devider: {
+    height: 20,
+  },
+  button: {
+    backgroundColor: '#DCDCDC',
+    paddingVertical: 6,
+    paddingHorizontal: 20,
+  },
+  modalOverlay: {
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalInner: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    marginHorizontal: 40,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  link: {
+    color: '#0991FF',
+    paddingVertical: 4,
   },
 });
-
-export default ExampleApp;

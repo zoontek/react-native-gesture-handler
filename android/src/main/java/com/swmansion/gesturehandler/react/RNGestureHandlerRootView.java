@@ -5,6 +5,8 @@ import android.view.MotionEvent;
 
 import com.facebook.infer.annotation.Assertions;
 import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.views.modal.ReactModalHostManager;
+import com.facebook.react.views.modal.ReactModalHostView;
 import com.facebook.react.views.view.ReactViewGroup;
 
 import javax.annotation.Nullable;
@@ -12,9 +14,11 @@ import javax.annotation.Nullable;
 public class RNGestureHandlerRootView extends ReactViewGroup {
 
   private @Nullable RNGestureHandlerRootHelper mRootHelper;
+  private @Nullable ReactModalHostView mReactModalHostView;
 
-  public RNGestureHandlerRootView(Context context) {
+  RNGestureHandlerRootView(Context context, ReactModalHostView reactModalHostView) {
     super(context);
+    mReactModalHostView = reactModalHostView;
   }
 
   @Override
