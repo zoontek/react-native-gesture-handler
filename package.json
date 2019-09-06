@@ -7,7 +7,7 @@
     "test": "jest",
     "precommit": "lint-staged"
   },
-  "main": "index.js",
+  "main": "index",
   "types": "react-native-gesture-handler.d.ts",
   "files": [
     "android/build.gradle",
