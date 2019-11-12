@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { Animated, Platform } from 'react-native';
-import { State, BaseButton } from '../GestureHandler';
+import { Platform, View } from 'react-native';
+import { State, AnimatedBaseButton } from '../GestureHandler';
 import PropTypes from 'prop-types';
 
 /**
@@ -99,7 +99,7 @@ export default class GenericTouchable extends Component {
         (this.props.delayPressIn || 0) + (this.props.delayLongPress || 0);
       this.longPressTimeout = setTimeout(this.onLongPressDetected, time);
     }
-  };
+  }
   // handleMoveOutside in called on traveling outside component.
   // Handles state transition with delay.
   handleMoveOutside() {
@@ -113,7 +113,7 @@ export default class GenericTouchable extends Component {
     } else {
       this.moveToState(TOUCHABLE_STATE.MOVED_OUTSIDE);
     }
-  };
+  }
 
   // handleGoToUndetermined transits to UNDETERMINED state with proper delay
   handleGoToUndetermined() {
@@ -132,7 +132,7 @@ export default class GenericTouchable extends Component {
       }
       this.moveToState(TOUCHABLE_STATE.UNDETERMINED);
     }
-  };
+  }
 
   componentDidMount() {
     this.reset();
@@ -173,7 +173,7 @@ export default class GenericTouchable extends Component {
     this.props.onStateChange && this.props.onStateChange(this.STATE, newState);
     // ... and make transition.
     this.STATE = newState;
-  };
+  }
 
   onGestureEvent = ({ nativeEvent: { pointerInside } }) => {
     if (this.pointerInside !== pointerInside) {
@@ -228,7 +228,7 @@ export default class GenericTouchable extends Component {
       // This call is not throttled with delays (like in RN's implementation).
       this.moveToState(TOUCHABLE_STATE.BEGAN);
     }
-  };
+  }
 
   onMoveOut() {
     // long press should no longer be detected
@@ -237,7 +237,7 @@ export default class GenericTouchable extends Component {
     if (this.STATE === TOUCHABLE_STATE.BEGAN) {
       this.handleMoveOutside();
     }
-  };
+  }
 
   render() {
     const coreProps = {
@@ -255,17 +255,16 @@ export default class GenericTouchable extends Component {
     };
 
     return (
-      <BaseButton
+      <AnimatedBaseButton
         onHandlerStateChange={
           this.props.disabled ? null : this.onHandlerStateChange
         }
         onGestureEvent={this.onGestureEvent}
         hitSlop={this.props.hitSlop}
+        style={this.props.style}
         {...this.props.extraButtonProps}>
-        <Animated.View {...coreProps} style={this.props.style}>
-          {this.props.children}
-        </Animated.View>
-      </BaseButton>
+        <View {...coreProps}>{this.props.children}</View>
+      </AnimatedBaseButton>
     );
   }
 }

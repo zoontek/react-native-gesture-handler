@@ -74,7 +74,7 @@ export class BaseButton extends React.Component {
   }
 }
 
-const AnimatedBaseButton = Animated.createAnimatedComponent(BaseButton);
+export const AnimatedBaseButton = Animated.createAnimatedComponent(BaseButton);
 
 const btnStyles = StyleSheet.create({
   underlay: {
